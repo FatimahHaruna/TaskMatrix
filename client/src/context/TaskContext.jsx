@@ -4,20 +4,9 @@ import { useAuth } from './AuthContext';
 
 const TaskContext = createContext(null);
 
-const SEED = [
-  { _id: 's1', title: 'Finish CS101 lab report — due tonight', quadrant: 'q1', priority: 'High', labels: ['cs101'], dueDate: new Date().toISOString(), completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's2', title: 'Email Prof. Nguyen about midterm absence', quadrant: 'q1', priority: 'High', labels: ['email'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's3', title: 'Study for Linear Algebra midterm · Ch. 5–8', quadrant: 'q2', priority: 'Medium', labels: ['math240', 'study'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's4', title: 'Draft thesis proposal before advisor meeting', quadrant: 'q2', priority: 'Medium', labels: ['thesis'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's5', title: 'Apply for Stripe summer internship', quadrant: 'q2', priority: 'Medium', labels: ['career'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's6', title: 'Pick up textbook holds at library', quadrant: 'q3', priority: 'Low', labels: ['errand'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's7', title: 'Coordinate shared notes doc for study group', quadrant: 'q3', priority: 'Low', labels: ['math240'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's8', title: 'Reorganize Discord study servers', quadrant: 'q4', priority: 'Low', labels: ['ops'], completed: false, assignee: 'me', comments: [], activity: [] },
-];
-
 export function TaskProvider({ children }) {
   const { user } = useAuth();
-  const [tasks, setTasks] = useState(SEED);
+  const [tasks, setTasks] = useState([]);
   const [trash, setTrash] = useState([]);
   const [loading, setLoading] = useState(false);
   const [usingApi, setUsingApi] = useState(false);
@@ -30,7 +19,7 @@ export function TaskProvider({ children }) {
       setTrash(trashed);
       setUsingApi(true);
     } catch {
-      setTasks(SEED);
+      setTasks([]);
       setUsingApi(false);
     } finally {
       setLoading(false);
@@ -39,7 +28,7 @@ export function TaskProvider({ children }) {
 
   useEffect(() => {
     if (!user || user.isGuest) {
-      setTasks(SEED);
+      setTasks([]);
       setTrash([]);
       setUsingApi(false);
       return;
