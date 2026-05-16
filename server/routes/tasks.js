@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middleware/auth');
 const {
   getTasks, getTrash, createTask, updateTask, softDeleteTask,
   restoreTask, permanentDelete, toggleComplete, addComment, reorderTasks,
 } = require('../controllers/taskController');
+
+router.use(protect);
 
 router.get('/', getTasks);
 router.get('/trash', getTrash);
