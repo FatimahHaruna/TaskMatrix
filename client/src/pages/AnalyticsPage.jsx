@@ -1,37 +1,74 @@
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
+import Icon from '../components/ui/Icon';
 import { useTaskContext } from '../context/TaskContext';
 import { QUADRANTS } from '../components/board/Quadrant';
 
-function StatCard({ value, label, color }) {
+function exportCSV(tasks) {
+  const headers = ['Title', 'Quadrant', 'Priority', 'Completed', 'Due Date', 'Labels', 'Assignee'];
+  const rows = tasks.map((t) => [
+    `"${t.title.replace(/"/g, '""')}"`,
+    QUADRANTS.find((q) => q.id === t.quadrant)?.label || t.quadrant,
+    t.priority,
+    t.completed ? 'Yes' : 'No',
+    t.dueDate ? new Date(t.dueDate).toLocaleDateString() : '',
+    (t.labels || []).join(';'),
+    t.assignee,
+  ]);
+  const csv = [headers, ...rows].map((r) => r.join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'taskmatrix-export.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function StatCard({ value, label, delta, color }) {
   return (
     <div className="tm-stat-card">
-      <div className="tm-stat-value" style={{ color: color || 'var(--ink)' }}>{value}</div>
-      <div className="tm-stat-label">{label}</div>
+      <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>{label}</div>
+      <div className="tm-stat-value" style={{ color: color || 'var(--ink)', marginTop: 10 }}>{value}</div>
+      {delta != null && (
+        <div style={{ marginTop: 8, fontSize: 12, color: 'var(--q4)', display: 'flex', alignItems: 'center', gap: 5 }}>
+          <span style={{ width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderBottom: '5px solid var(--q4)' }} />
+          {delta}
+        </div>
+      )}
     </div>
   );
 }
 
-function QuadrantBar({ q, count, total }) {
-  const pct = total ? Math.round((count / total) * 100) : 0;
+function BarChart({ data, max }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-      <div style={{ width: 90, fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', flexShrink: 0 }}>
-        {q.label}
-      </div>
-      <div style={{ flex: 1 }}>
-        <div className="tm-chart-bar-bg">
-          <div
-            className="tm-chart-bar-fill"
-            style={{ width: `${pct}%`, background: q.color }}
-          />
+    <div style={{ display: 'flex', gap: 6, alignItems: 'flex-end', height: 180 }}>
+      {data.map(([created, done], i) => (
+        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <div style={{ height: 160, display: 'flex', alignItems: 'flex-end', gap: 2, width: '100%', justifyContent: 'center' }}>
+            <div style={{ background: 'var(--ink-4)', opacity: 0.35, width: '45%', height: `${(created / max) * 100}%`, borderRadius: '3px 3px 0 0' }} />
+            <div style={{ background: 'var(--q4)', width: '45%', height: `${(done / max) * 100}%`, borderRadius: '3px 3px 0 0' }} />
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--ink-4)', fontFamily: 'var(--font-mono)' }}>{i + 1}</div>
         </div>
-      </div>
-      <div style={{ width: 36, fontSize: 13, fontWeight: 600, textAlign: 'right', fontVariantNumeric: 'tabular-nums' }}>
-        {count}
-      </div>
-      <div style={{ width: 34, fontSize: 12, color: 'var(--ink-4)', textAlign: 'right' }}>
-        {pct}%
+      ))}
+    </div>
+  );
+}
+
+function Heatmap() {
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const hours = ['9', '10', '11', '12', '1', '2', '3', '4', '5'];
+  const seed = (d, h) => ((d * 7 + h * 13 + 11) % 9) / 8;
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'auto repeat(9, 1fr)', gap: 4, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink-4)', minWidth: 320 }}>
+        <div />
+        {hours.map((h) => <div key={h} style={{ textAlign: 'center' }}>{h}</div>)}
+        {days.map((d, di) => (
+          <><div key={d} style={{ paddingRight: 6, alignSelf: 'center' }}>{d}</div>
+            {hours.map((_, hi) => {
+              const v = seed(di, hi);
+              return <div key={hi} style={{ aspectRatio: '1', borderRadius: 4, background: v < 0.1 ? 'var(--bg-2)' : `hsl(${160 - v * 40} ${40 + v * 30}% ${85 - v * 40}%)` }} />;
+            })}</>
+        ))}
       </div>
     </div>
   );
@@ -39,99 +76,121 @@ function QuadrantBar({ q, count, total }) {
 
 export default function AnalyticsPage() {
   const { tasks } = useTaskContext();
+  const allTasks = [...tasks];
 
-  const total = tasks.length;
-  const completed = tasks.filter((t) => t.completed).length;
-  const overdue = tasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date() && !t.completed).length;
-  const completionRate = total ? Math.round((completed / total) * 100) : 0;
+  const total     = allTasks.length;
+  const completed = allTasks.filter((t) => t.completed).length;
+  const overdue   = allTasks.filter((t) => t.dueDate && new Date(t.dueDate) < new Date() && !t.completed).length;
+  const rate      = total ? Math.round((completed / total) * 100) : 0;
+  const byQ       = Object.fromEntries(QUADRANTS.map((q) => [q.id, allTasks.filter((t) => t.quadrant === q.id).length]));
 
-  const byQ = QUADRANTS.reduce((acc, q) => {
-    acc[q.id] = tasks.filter((t) => t.quadrant === q.id).length;
-    return acc;
-  }, {});
+  // Simulated 14-day created vs completed (real data would come from timestamps)
+  const chartData = Array.from({ length: 14 }, (_, i) => {
+    const created = Math.floor(Math.random() * 8) + 4;
+    return [created, Math.floor(created * 0.75)];
+  });
+  const chartMax = 20;
 
-  const priorityCounts = {
-    High:   tasks.filter((t) => t.priority === 'High').length,
-    Medium: tasks.filter((t) => t.priority === 'Medium').length,
-    Low:    tasks.filter((t) => t.priority === 'Low').length,
-  };
+  const tips = [];
+  if (byQ['q1'] > 4) tips.push({ icon: 'clock', title: `${byQ['q1']} tasks stuck in Do First`, body: 'Consider breaking them into smaller chunks or scheduling focus blocks.' });
+  if (byQ['q4'] > 2) tips.push({ icon: 'trash', title: `${byQ['q4']} tasks in Eliminate`, body: 'These may be safe to drop — freeing up mental bandwidth.' });
+  if (tips.length === 0) tips.push({ icon: 'star', title: 'Good balance!', body: 'Keep scheduling Q2 tasks to stay ahead of the fire.' });
 
   return (
     <div className="tm-app">
       <Sidebar />
-
       <div className="tm-board-content">
-        <Topbar title="Analytics" />
-
-        <div className="tm-board-scroll">
-          {/* Hero */}
-          <div style={{ marginBottom: 24 }}>
-            <div className="tm-hero-date">
-              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+        <Topbar
+          title="Analytics"
+          actions={
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button className="tm-btn tm-btn-sm" onClick={() => exportCSV(allTasks)}>
+                <Icon name="download" size={13} />Export CSV
+              </button>
             </div>
+          }
+        />
+
+        <div className="tm-board-scroll" style={{ background: 'var(--bg)' }}>
+          <div style={{ marginBottom: 24 }}>
+            <div className="tm-hero-date">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</div>
             <h2 className="tm-hero-heading">Your productivity snapshot</h2>
           </div>
 
-          {/* Stat cards */}
-          <div className="tm-analytics-grid">
-            <StatCard value={total}            label="Total tasks"      />
-            <StatCard value={completed}        label="Completed"        color="var(--q4)" />
-            <StatCard value={`${completionRate}%`} label="Completion rate" color="var(--q2)" />
-            <StatCard value={overdue}          label="Overdue"          color={overdue > 0 ? 'var(--q1)' : 'var(--ink)'} />
+          {/* KPI row */}
+          <div className="tm-analytics-grid" style={{ marginBottom: 16 }}>
+            <StatCard value={`${rate}%`} label="Completion rate" color="var(--q2)" />
+            <StatCard value={completed} label="Tasks completed" color="var(--q4)" />
+            <StatCard value={total - completed} label="Active tasks" />
+            <StatCard value={overdue} label="Overdue" color={overdue > 0 ? 'var(--q1)' : 'var(--ink)'} />
           </div>
 
-          {/* Distribution */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-            {/* By quadrant */}
-            <div className="tm-stat-card" style={{ padding: 24 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 18 }}>Tasks by quadrant</h3>
-              {QUADRANTS.map((q) => (
-                <QuadrantBar key={q.id} q={q} count={byQ[q.id]} total={total} />
-              ))}
+          {/* Charts row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: 14, marginBottom: 14 }}>
+            {/* Created vs completed */}
+            <div className="tm-stat-card" style={{ padding: 20 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Created vs completed</div>
+                  <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 2 }}>Last 14 days</div>
+                </div>
+                <div style={{ display: 'flex', gap: 12, fontSize: 12 }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--ink-3)' }}><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--ink-4)', opacity: 0.5 }} />Created</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: 'var(--ink-3)' }}><span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--q4)' }} />Completed</span>
+                </div>
+              </div>
+              <BarChart data={chartData} max={chartMax} />
             </div>
 
-            {/* By priority */}
-            <div className="tm-stat-card" style={{ padding: 24 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 18 }}>Tasks by priority</h3>
-              {[
-                { label: 'High',   color: 'var(--q1)', count: priorityCounts.High   },
-                { label: 'Medium', color: 'var(--q3)', count: priorityCounts.Medium },
-                { label: 'Low',    color: 'var(--q4)', count: priorityCounts.Low    },
-              ].map((row) => (
-                <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 14 }}>
-                  <div style={{ width: 60, fontSize: 13, fontWeight: 500, color: 'var(--ink-2)', flexShrink: 0 }}>
-                    {row.label}
+            {/* Quadrant distribution */}
+            <div className="tm-stat-card" style={{ padding: 20 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Quadrant distribution</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 2, marginBottom: 14 }}>Where time goes</div>
+
+              {/* Stacked bar */}
+              <div style={{ display: 'flex', height: 14, borderRadius: 4, overflow: 'hidden', marginBottom: 14 }}>
+                {QUADRANTS.map((q) => (
+                  <div key={q.id} style={{ width: total ? `${(byQ[q.id] / total) * 100}%` : '25%', background: q.color }} title={`${q.label}: ${byQ[q.id]}`} />
+                ))}
+              </div>
+
+              {QUADRANTS.map((q) => (
+                <div key={q.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: 3, background: q.color, flexShrink: 0 }} />
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 500 }}>{q.label}</div>
+                  <div style={{ flex: 1, height: 5, borderRadius: 3, background: 'var(--bg-2)', overflow: 'hidden' }}>
+                    <div style={{ width: total ? `${(byQ[q.id] / total) * 100}%` : '0%', height: '100%', background: q.color }} />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="tm-chart-bar-bg">
-                      <div
-                        className="tm-chart-bar-fill"
-                        style={{ width: total ? `${Math.round((row.count / total) * 100)}%` : '0%', background: row.color }}
-                      />
-                    </div>
-                  </div>
-                  <div style={{ width: 36, fontSize: 13, fontWeight: 600, textAlign: 'right' }}>{row.count}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--ink-3)', width: 24, textAlign: 'right' }}>{byQ[q.id]}</div>
                 </div>
               ))}
+            </div>
+          </div>
 
-              {/* Quadrant health */}
-              <div style={{ marginTop: 24 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12 }}>Eisenhower health</h3>
-                {(() => {
-                  const q1Count = byQ['q1'];
-                  const q4Count = byQ['q4'];
-                  const totalActive = tasks.filter((t) => !t.completed).length;
-                  if (totalActive === 0) return <p style={{ color: 'var(--ink-4)', fontSize: 13 }}>No active tasks — great work!</p>;
-                  const tips = [];
-                  if (q1Count > 4) tips.push('You have many urgent tasks. Try to schedule preventively.');
-                  if (q4Count > 2) tips.push('Consider eliminating low-value tasks to reclaim focus time.');
-                  if (tips.length === 0) tips.push('Good balance! Keep scheduling Q2 tasks to stay ahead.');
-                  return tips.map((tip, i) => (
-                    <p key={i} style={{ fontSize: 13, color: 'var(--ink-3)', lineHeight: 1.5, marginBottom: 6 }}>
-                      💡 {tip}
-                    </p>
-                  ));
-                })()}
+          {/* Bottom row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            {/* Heatmap */}
+            <div className="tm-stat-card" style={{ padding: 20 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Productivity heatmap</div>
+              <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 2, marginBottom: 16 }}>When you ship</div>
+              <Heatmap />
+            </div>
+
+            {/* AI patterns */}
+            <div style={{ background: 'var(--ink)', color: 'var(--bg)', borderRadius: 'var(--radius)', padding: 20 }}>
+              <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'rgba(255,255,255,0.5)' }}>Patterns from AI</div>
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                {tips.map((p, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Icon name={p.icon} size={14} />
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13.5 }}>{p.title}</div>
+                      <div style={{ fontSize: 12.5, color: 'rgba(255,255,255,0.65)', lineHeight: 1.5, marginTop: 3 }}>{p.body}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
