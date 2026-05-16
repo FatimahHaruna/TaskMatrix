@@ -58,9 +58,11 @@ function InviteModal({ onClose, onInvite }) {
           </div>
           <div className="tm-form-field">
             <label className="tm-form-label">Role</label>
-            <select className="tm-input" value={role} onChange={(e) => setRole(e.target.value)}>
-              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-            </select>
+            <input className="tm-input" list="tm-roles-list" placeholder="Editor, Admin, Viewer…"
+              value={role} onChange={(e) => setRole(e.target.value)} />
+            <datalist id="tm-roles-list">
+              {ROLES.map((r) => <option key={r} value={r} />)}
+            </datalist>
           </div>
           {error && (
             <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>{error}</div>
@@ -151,11 +153,15 @@ export default function TeamPage() {
                     <div style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 2 }}>{m.email}</div>
                   </div>
                   {editingRole === m.email ? (
-                    <select className="tm-input" style={{ fontSize: 12, padding: '4px 8px' }}
-                      value={m.role} onChange={(e) => changeRole(m.email, e.target.value)} autoFocus
-                      onBlur={() => setEditingRole(null)}>
-                      {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
-                    </select>
+                    <>
+                      <input className="tm-input" list="tm-roles-edit-list" style={{ fontSize: 12, padding: '4px 8px', width: 100 }}
+                        defaultValue={m.role} autoFocus
+                        onBlur={(e) => { changeRole(m.email, e.target.value || m.role); }}
+                        onKeyDown={(e) => { if (e.key === 'Enter') changeRole(m.email, e.target.value || m.role); if (e.key === 'Escape') setEditingRole(null); }} />
+                      <datalist id="tm-roles-edit-list">
+                        {ROLES.map((r) => <option key={r} value={r} />)}
+                      </datalist>
+                    </>
                   ) : (
                     <button onClick={() => setEditingRole(m.email)}
                       style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 6, background: 'var(--bg-2)', color: 'var(--ink-2)', border: '1px solid var(--line-2)', cursor: 'pointer', fontFamily: 'inherit' }}>

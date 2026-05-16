@@ -38,6 +38,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   const loginAsGuest = useCallback(() => {
+    localStorage.removeItem('tm_token');
     const guest = { _id: 'guest', displayName: 'Guest', email: '', isGuest: true };
     localStorage.setItem('tm_guest', JSON.stringify(guest));
     setUser(guest);

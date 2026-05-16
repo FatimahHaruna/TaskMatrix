@@ -53,23 +53,39 @@ function BarChart({ data, max }) {
   );
 }
 
-function Heatmap() {
+function Heatmap({ tasks }) {
   const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-  const hours = ['9', '10', '11', '12', '1', '2', '3', '4', '5'];
-  const seed = (d, h) => ((d * 7 + h * 13 + 11) % 9) / 8;
+  // day-of-week: JS 0=Sun → remap to 0=Mon
+  const hourLabels = ['9', '10', '11', '12', '1', '2', '3', '4', '5'];
+  const hourValues = [9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+  // Build 7×9 grid from real completedAt timestamps
+  const grid = Array.from({ length: 7 }, () => Array(9).fill(0));
+  tasks.forEach((t) => {
+    if (!t.completedAt) return;
+    const d = new Date(t.completedAt);
+    const dow = (d.getDay() + 6) % 7; // 0=Mon…6=Sun
+    const hi = hourValues.indexOf(d.getHours());
+    if (hi !== -1) grid[dow][hi]++;
+  });
+  const gridMax = Math.max(1, ...grid.flat());
+
   return (
     <div style={{ overflowX: 'auto' }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'auto repeat(9, 1fr)', gap: 4, fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--ink-4)', minWidth: 320 }}>
         <div />
-        {hours.map((h) => <div key={h} style={{ textAlign: 'center' }}>{h}</div>)}
+        {hourLabels.map((h) => <div key={h} style={{ textAlign: 'center' }}>{h}</div>)}
         {days.map((d, di) => (
           <><div key={d} style={{ paddingRight: 6, alignSelf: 'center' }}>{d}</div>
-            {hours.map((_, hi) => {
-              const v = seed(di, hi);
-              return <div key={hi} style={{ aspectRatio: '1', borderRadius: 4, background: v < 0.1 ? 'var(--bg-2)' : `hsl(${160 - v * 40} ${40 + v * 30}% ${85 - v * 40}%)` }} />;
+            {hourValues.map((_, hi) => {
+              const v = grid[di][hi] / gridMax;
+              return <div key={hi} title={`${grid[di][hi]} task${grid[di][hi] !== 1 ? 's' : ''}`} style={{ aspectRatio: '1', borderRadius: 4, background: v < 0.05 ? 'var(--bg-2)' : `hsl(${160 - v * 40} ${40 + v * 30}% ${85 - v * 40}%)` }} />;
             })}</>
         ))}
       </div>
+      {tasks.filter((t) => t.completedAt).length === 0 && (
+        <div style={{ textAlign: 'center', fontSize: 12, color: 'var(--ink-4)', marginTop: 12 }}>Complete tasks to see your activity pattern</div>
+      )}
     </div>
   );
 }
@@ -179,7 +195,7 @@ export default function AnalyticsPage() {
             <div className="tm-stat-card" style={{ padding: 20 }}>
               <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Productivity heatmap</div>
               <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 2, marginBottom: 16 }}>When you ship</div>
-              <Heatmap />
+              <Heatmap tasks={allTasks} />
             </div>
 
             {/* AI patterns */}

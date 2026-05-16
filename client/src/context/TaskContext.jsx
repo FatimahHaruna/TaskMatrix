@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { taskApi } from '../services/api';
+import { useAuth } from './AuthContext';
 
 const TaskContext = createContext(null);
 
@@ -15,6 +16,7 @@ const SEED = [
 ];
 
 export function TaskProvider({ children }) {
+  const { user } = useAuth();
   const [tasks, setTasks] = useState(SEED);
   const [trash, setTrash] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,13 +30,22 @@ export function TaskProvider({ children }) {
       setTrash(trashed);
       setUsingApi(true);
     } catch {
-      // server unavailable — keep seed data
+      setTasks(SEED);
+      setUsingApi(false);
     } finally {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => { loadTasks(); }, [loadTasks]);
+  useEffect(() => {
+    if (!user || user.isGuest) {
+      setTasks(SEED);
+      setTrash([]);
+      setUsingApi(false);
+      return;
+    }
+    loadTasks();
+  }, [user?._id, user?.isGuest, loadTasks]);
 
   const createTask = useCallback(async (data) => {
     if (usingApi) {

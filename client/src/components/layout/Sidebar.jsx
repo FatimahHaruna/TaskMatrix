@@ -53,7 +53,7 @@ export default function Sidebar() {
 
   return (
     <aside className="tm-sidebar">
-      <Brand />
+      <Brand onClick={() => navigate('/login')} />
 
       {items.map((item) => <NavItem key={item.id} item={item} />)}
 
