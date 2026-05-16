@@ -31,7 +31,7 @@ function SettingsRow({ label, desc, children }) {
 export default function SettingsPage() {
   const { user, updateUser, logout } = useAuth();
   const [activeSection, setActiveSection] = useState('Profile');
-  const [displayName, setDisplayName] = useState(user?.displayName || 'Alex Park');
+  const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [timezone, setTimezone]       = useState(user?.timezone || 'UTC');
   const [saving, setSaving]           = useState(false);
   const [saved, setSaved]             = useState(false);
@@ -66,7 +66,7 @@ export default function SettingsPage() {
     setSaving(false);
   }
 
-  const initials = displayName.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || 'AP';
+  const initials = displayName.trim().split(/\s+/).filter(Boolean).map((w) => w[0]).join('').toUpperCase().slice(0, 2) || '?';
 
   return (
     <div className="tm-app">
@@ -110,7 +110,7 @@ export default function SettingsPage() {
                       </div>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700 }}>{displayName}</div>
-                        <div style={{ color: 'var(--ink-3)', fontSize: 13, marginTop: 2 }}>{user?.email || 'alex@university.edu'} · Student plan · {timezone}</div>
+                        <div style={{ color: 'var(--ink-3)', fontSize: 13, marginTop: 2 }}>{user?.email || ''} · Student plan · {timezone}</div>
                         <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                           <button className="tm-btn tm-btn-sm">Upload photo</button>
                           <button className="tm-btn tm-btn-ghost tm-btn-sm">Remove</button>
@@ -211,7 +211,7 @@ export default function SettingsPage() {
               {activeSection === 'Account & security' && (
                 <SettingsCard title="Account & security">
                   <SettingsRow label="Email address" desc="Your login email">
-                    <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>{user?.email || 'alex@university.edu'}</span>
+                    <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>{user?.email || ''}</span>
                   </SettingsRow>
                   <SettingsRow label="Password" desc="Change your account password">
                     <button className="tm-btn tm-btn-sm" onClick={() => alert('Use the "Forgot password?" link on the login page to reset your password.')}>

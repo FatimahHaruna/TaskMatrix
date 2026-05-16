@@ -89,7 +89,10 @@ const updateMe = async (req, res) => {
     if (aiPrefs !== undefined) updates.aiPrefs = aiPrefs;
     if (darkMode !== undefined) updates.darkMode = darkMode;
     if (updates.displayName) {
-      updates.avatarInitials = updates.displayName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+      const words = updates.displayName.trim().split(/\s+/).filter(Boolean);
+      updates.avatarInitials = words.length === 1
+        ? words[0].slice(0, 2).toUpperCase()
+        : (words[0][0] + words[words.length - 1][0]).toUpperCase();
     }
     const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true });
     res.json(user);

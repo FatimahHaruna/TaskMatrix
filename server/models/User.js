@@ -33,16 +33,20 @@ userSchema.virtual('isLocked').get(function() {
   return !!(this.lockUntil && this.lockUntil > Date.now());
 });
 
+function computeInitials(name) {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+}
+
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password') || !this.password) return next();
-  this.password = await bcrypt.hash(this.password, 12);
-  if (!this.avatarInitials && this.displayName) {
-    this.avatarInitials = this.displayName
-      .split(' ')
-      .map((w) => w[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  if (this.isModified('password') && this.password) {
+    this.password = await bcrypt.hash(this.password, 12);
+  }
+  if (this.isModified('displayName') && this.displayName) {
+    this.avatarInitials = computeInitials(this.displayName);
+  } else if (!this.avatarInitials && this.displayName) {
+    this.avatarInitials = computeInitials(this.displayName);
   }
   next();
 });

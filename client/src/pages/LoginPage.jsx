@@ -265,13 +265,13 @@ export default function LoginPage() {
           {mode === 'register' && (
             <div className="tm-form-field">
               <label className="tm-form-label">Display name</label>
-              <input className="tm-input" placeholder="Alex Park" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+              <input className="tm-input" placeholder="Full name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
             </div>
           )}
 
           <div className="tm-form-field">
             <label className="tm-form-label">Email</label>
-            <input className="tm-input" type="email" placeholder="alex@university.edu" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
+            <input className="tm-input" type="email" placeholder="your@email.com" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" />
           </div>
 
           <div className="tm-form-field">

@@ -1,6 +1,7 @@
 import Icon from '../ui/Icon';
-import Avatar from '../ui/Avatar';
+import Avatar, { initials } from '../ui/Avatar';
 import { useTaskContext } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 
 export function formatDue(dateStr, timeStr) {
   if (!dateStr) return null;
@@ -21,7 +22,10 @@ export function formatDue(dateStr, timeStr) {
 
 export default function TaskCard({ task, onClick, compact = false }) {
   const { toggleComplete, deleteTask } = useTaskContext();
+  const { user } = useAuth();
   const due = task.dueDate ? formatDue(task.dueDate, task.dueTime) : null;
+  const ownerInitials = user ? (user.avatarInitials || initials(user.displayName)) : '?';
+  const ownerName = user?.displayName || 'Me';
 
   function handleCheck(e) {
     e.stopPropagation();
@@ -102,7 +106,7 @@ export default function TaskCard({ task, onClick, compact = false }) {
           </>
         )}
         <div style={{ marginLeft: 'auto' }}>
-          <Avatar person={task.assignee || 'me'} size={18} />
+          <Avatar person={{ id: 'owner', name: ownerName, initials: ownerInitials, hue: 230, isOwner: true }} size={18} />
         </div>
       </div>
     </div>

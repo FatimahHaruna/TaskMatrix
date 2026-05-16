@@ -1,5 +1,4 @@
 export const PEOPLE = [
-  { id: 'me',   name: 'Alex Park',    initials: 'AP', hue: 230 },
   { id: 'maya', name: 'Maya Singh',   initials: 'MS', hue: 12  },
   { id: 'omar', name: 'Omar Reyes',   initials: 'OR', hue: 152 },
   { id: 'iris', name: 'Iris Chen',    initials: 'IC', hue: 280 },
@@ -8,18 +7,21 @@ export const PEOPLE = [
 ];
 
 export function personById(id) {
-  return PEOPLE.find((p) => p.id === id) || PEOPLE[0];
+  return PEOPLE.find((p) => p.id === id) || { id, name: id, initials: id ? id.slice(0, 2).toUpperCase() : '??', hue: 230 };
+}
+
+export function initials(name) {
+  if (!name) return '?';
+  const words = name.trim().split(/\s+/);
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[words.length - 1][0]).toUpperCase();
 }
 
 export default function Avatar({ person, size = 24 }) {
   const p = typeof person === 'string' ? personById(person) : person;
-  const isMe = p.id === 'me';
-  const bg = isMe
-    ? 'var(--ink)'
-    : `hsl(${p.hue} 60% 88%)`;
-  const color = isMe
-    ? 'var(--bg)'
-    : `hsl(${p.hue} 50% 30%)`;
+  const isOwner = p.isOwner;
+  const bg = isOwner ? 'var(--ink)' : `hsl(${p.hue ?? 230} 60% 88%)`;
+  const color = isOwner ? 'var(--bg)' : `hsl(${p.hue ?? 230} 50% 30%)`;
 
   return (
     <div

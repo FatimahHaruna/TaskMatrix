@@ -23,7 +23,7 @@ const createTask = async (req, res) => {
     const task = await Task.create({
       ...req.body,
       owner: req.user._id,
-      activity: [{ user: 'me', action: 'created', detail: 'Task created' }],
+      activity: [{ user: req.user.displayName, action: 'created', detail: 'Task created' }],
     });
     res.status(201).json(task);
   } catch (err) {
@@ -36,7 +36,7 @@ const updateTask = async (req, res) => {
     const existing = await Task.findOne({ _id: req.params.id, owner: req.user._id });
     if (!existing) return res.status(404).json({ message: 'Task not found' });
 
-    const activityEntry = { user: 'me', action: 'updated', detail: 'Task updated' };
+    const activityEntry = { user: req.user.displayName, action: 'updated', detail: 'Task updated' };
     if (req.body.quadrant && req.body.quadrant !== existing.quadrant) {
       const labels = { q1: 'Do First', q2: 'Schedule', q3: 'Delegate', q4: 'Eliminate' };
       activityEntry.detail = `Moved from ${labels[existing.quadrant]} to ${labels[req.body.quadrant]}`;
@@ -57,7 +57,7 @@ const softDeleteTask = async (req, res) => {
   try {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, owner: req.user._id },
-      { deleted: true, deletedAt: new Date(), $push: { activity: { user: 'me', action: 'deleted', detail: 'Moved to trash' } } },
+      { deleted: true, deletedAt: new Date(), $push: { activity: { user: req.user.displayName, action: 'deleted', detail: 'Moved to trash' } } },
       { new: true }
     );
     if (!task) return res.status(404).json({ message: 'Task not found' });
@@ -71,7 +71,7 @@ const restoreTask = async (req, res) => {
   try {
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, owner: req.user._id },
-      { deleted: false, deletedAt: null, $push: { activity: { user: 'me', action: 'restored', detail: 'Restored from trash' } } },
+      { deleted: false, deletedAt: null, $push: { activity: { user: req.user.displayName, action: 'restored', detail: 'Restored from trash' } } },
       { new: true }
     );
     if (!task) return res.status(404).json({ message: 'Task not found' });
@@ -97,7 +97,7 @@ const toggleComplete = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' });
     task.completed = !task.completed;
     task.completedAt = task.completed ? new Date() : null;
-    task.activity.push({ user: 'me', action: task.completed ? 'completed' : 'reopened', detail: task.completed ? 'Marked complete' : 'Marked incomplete' });
+    task.activity.push({ user: req.user.displayName, action: task.completed ? 'completed' : 'reopened', detail: task.completed ? 'Marked complete' : 'Marked incomplete' });
     await task.save();
     res.json(task);
   } catch (err) {
@@ -111,7 +111,7 @@ const addComment = async (req, res) => {
     if (!body) return res.status(400).json({ message: 'Comment body required' });
     const task = await Task.findOneAndUpdate(
       { _id: req.params.id, owner: req.user._id },
-      { $push: { comments: { user: 'me', body }, activity: { user: 'me', action: 'commented', detail: body.slice(0, 60) } } },
+      { $push: { comments: { user: req.user.displayName, body }, activity: { user: req.user.displayName, action: 'commented', detail: body.slice(0, 60) } } },
       { new: true }
     );
     if (!task) return res.status(404).json({ message: 'Task not found' });

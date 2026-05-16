@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '../ui/Icon';
-import Avatar, { personById } from '../ui/Avatar';
+import Avatar, { initials } from '../ui/Avatar';
 import { QUADRANTS } from '../board/Quadrant';
 import { useTaskContext } from '../../context/TaskContext';
+import { useAuth } from '../../context/AuthContext';
 import { suggestQuadrant, suggestSubtasks, checkMisclassification } from '../../services/aiService';
 
 const PRIORITIES = ['High', 'Medium', 'Low'];
@@ -17,7 +18,10 @@ const TABS = ['details', 'comments', 'activity'];
 
 export default function TaskModal({ task, defaultQuadrant, onClose }) {
   const { createTask, updateTask, addComment } = useTaskContext();
+  const { user } = useAuth();
   const isEditing = !!task;
+  const meInitials = user ? (user.avatarInitials || initials(user.displayName)) : '?';
+  const meName = user?.displayName || 'Me';
 
   const [tab, setTab] = useState('details');
   const [title, setTitle]       = useState(task?.title ?? '');
@@ -301,13 +305,15 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                 <p style={{ color: 'var(--ink-4)', fontSize: 13 }}>No comments yet.</p>
               )}
               {(task.comments || []).map((c, i) => {
-                const p = personById(c.user);
+                const commentName = c.user && c.user !== 'me' ? c.user : meName;
+                const commentInitials = initials(commentName);
+                const isMe = !c.user || c.user === 'me' || c.user === meName;
                 return (
                   <div key={c._id || i} style={{ display: 'flex', gap: 10, marginBottom: 14 }}>
-                    <Avatar person={p} size={28} />
+                    <Avatar person={{ id: c._id || i, name: commentName, initials: commentInitials, hue: 230, isOwner: isMe }} size={28} />
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                        <strong style={{ fontSize: 13 }}>{p.name}</strong>
+                        <strong style={{ fontSize: 13 }}>{commentName}</strong>
                         <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{new Date(c.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
                       </div>
                       <div style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.5, marginTop: 3 }}>{c.body}</div>
@@ -316,7 +322,7 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                 );
               })}
               <div style={{ display: 'flex', gap: 10, marginTop: 12, alignItems: 'flex-end' }}>
-                <Avatar person="me" size={28} />
+                <Avatar person={{ id: 'me', name: meName, initials: meInitials, hue: 230, isOwner: true }} size={28} />
                 <div style={{ flex: 1, border: '1px solid var(--line-2)', borderRadius: 10, padding: '8px 12px', background: 'var(--bg)' }}>
                   <textarea
                     className="tm-modal-notes-input"
@@ -342,11 +348,15 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
               {(task.activity || []).length === 0 && (
                 <p style={{ color: 'var(--ink-4)', fontSize: 13 }}>No activity yet.</p>
               )}
-              {[...(task.activity || [])].reverse().map((a, i) => (
+              {[...(task.activity || [])].reverse().map((a, i) => {
+                const actName = a.user && a.user !== 'me' ? a.user : meName;
+                const actInitials = initials(actName);
+                const isActMe = !a.user || a.user === 'me' || a.user === meName;
+                return (
                 <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '7px 0', borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>
-                  <Avatar person={a.user || 'me'} size={22} />
+                  <Avatar person={{ id: `act-${i}`, name: actName, initials: actInitials, hue: 230, isOwner: isActMe }} size={22} />
                   <div style={{ flex: 1 }}>
-                    <span style={{ fontSize: 13, fontWeight: 500 }}>{personById(a.user || 'me').name} </span>
+                    <span style={{ fontSize: 13, fontWeight: 500 }}>{actName} </span>
                     <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>{a.detail}</span>
                     {a.createdAt && (
                       <div style={{ fontSize: 11, color: 'var(--ink-4)', marginTop: 2 }}>
@@ -355,7 +365,8 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
