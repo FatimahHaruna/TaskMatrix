@@ -1,0 +1,1 @@
+TaskMatrix is a task prioritization web app that uses the eisenhower matrix with AI suggestions to help users stay organized with tasks. It is built using the MERN stack and other relevant technologies. TaskMatrix is much more than a To-Do list.
