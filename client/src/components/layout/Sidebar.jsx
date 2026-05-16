@@ -53,13 +53,13 @@ export default function Sidebar() {
 
   return (
     <aside className="tm-sidebar">
-      <Brand onClick={() => navigate('/login')} />
+      <Brand onClick={() => navigate('/login')} size={36} />
 
       {items.map((item) => <NavItem key={item.id} item={item} />)}
 
-      <div className="tm-sidebar-spacer" />
-
-      {bottomItems.map((item) => <NavItem key={item.id} item={item} />)}
+      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {bottomItems.map((item) => <NavItem key={item.id} item={item} />)}
+      </div>
 
       <div className="tm-nav-item" style={{ cursor: 'default', paddingTop: 10, marginTop: 4, borderTop: '1px solid var(--line)' }}>
         <Avatar person={{ id: 'me', initials: user ? (user.avatarInitials || user.displayName?.slice(0,2).toUpperCase() || 'ME') : 'ME', hue: 230 }} size={28} />
