@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Icon from '../ui/Icon';
-import Avatar, { PEOPLE, personById } from '../ui/Avatar';
+import Avatar, { personById } from '../ui/Avatar';
 import { QUADRANTS } from '../board/Quadrant';
 import { useTaskContext } from '../../context/TaskContext';
 import { suggestQuadrant, suggestSubtasks, checkMisclassification } from '../../services/aiService';
@@ -280,7 +280,6 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                 <select className="tm-btn tm-btn-sm" value={assignee} onChange={(e) => setAssignee(e.target.value)}
                   style={{ cursor: 'pointer', appearance: 'none' }}>
                   <option value="me">Assigned to me</option>
-                  {PEOPLE.filter((p) => p.id !== 'me').map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
 
                 {labels.map((l) => (
