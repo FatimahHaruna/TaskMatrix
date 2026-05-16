@@ -8,6 +8,13 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Guest session set by "Continue without account"
+    const guest = localStorage.getItem('tm_guest');
+    if (guest) {
+      setUser(JSON.parse(guest));
+      setLoading(false);
+      return;
+    }
     const token = localStorage.getItem('tm_token');
     if (!token) { setLoading(false); return; }
     authApi.getMe()
@@ -30,8 +37,15 @@ export function AuthProvider({ children }) {
     return u;
   }, []);
 
+  const loginAsGuest = useCallback(() => {
+    const guest = { _id: 'guest', displayName: 'Guest', email: '', isGuest: true };
+    localStorage.setItem('tm_guest', JSON.stringify(guest));
+    setUser(guest);
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem('tm_token');
+    localStorage.removeItem('tm_guest');
     setUser(null);
   }, []);
 
@@ -42,7 +56,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, loginAsGuest, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

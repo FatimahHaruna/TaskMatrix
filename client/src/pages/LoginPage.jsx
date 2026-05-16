@@ -103,7 +103,7 @@ function ForgotPasswordModal({ onClose }) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, register } = useAuth();
+  const { login, register, loginAsGuest } = useAuth();
   const [mode, setMode] = useState('login');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -196,7 +196,7 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <button type="button" className="tm-btn" style={{ padding: '12px 14px', justifyContent: 'center' }}
-            onClick={() => navigate('/board')}>
+            onClick={() => { loginAsGuest(); navigate('/board'); }}>
             <Icon name="google" size={18} stroke={0} />
             Continue with Google
           </button>
@@ -286,7 +286,7 @@ export default function LoginPage() {
           </div>
 
           <button type="button" className="tm-btn tm-btn-ghost" style={{ justifyContent: 'center', fontSize: 12, color: 'var(--ink-4)', marginTop: 4 }}
-            onClick={() => navigate('/board')}>
+            onClick={() => { loginAsGuest(); navigate('/board'); }}>
             Continue without account →
           </button>
         </form>

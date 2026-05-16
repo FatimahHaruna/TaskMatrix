@@ -15,7 +15,7 @@ function RequireAuth({ children }) {
   const { user, loading } = useAuth();
   const location = useLocation();
   if (loading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'var(--ink-3)', fontSize: 14 }}>Loading…</div>;
-  // Allow access without auth so app works without a server
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
   return children;
 }
 
@@ -25,7 +25,7 @@ export default function App() {
       <AuthProvider>
         <TaskProvider>
           <Routes>
-            <Route path="/" element={<Navigate to="/board" replace />} />
+            <Route path="/" element={<Navigate to="/login" replace />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/welcome" element={<WelcomePage />} />
             <Route path="/board" element={<RequireAuth><BoardPage /></RequireAuth>} />
@@ -35,7 +35,7 @@ export default function App() {
             <Route path="/trash" element={<RequireAuth><TrashPage /></RequireAuth>} />
             <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
             <Route path="/integrations" element={<RequireAuth><IntegrationsPage /></RequireAuth>} />
-            <Route path="*" element={<Navigate to="/board" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </TaskProvider>
       </AuthProvider>
