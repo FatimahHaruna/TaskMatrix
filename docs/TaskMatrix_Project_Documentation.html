@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaskMatrix – Project Documentation</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --q1: #e63946; --q2: #2a9d8f; --q3: #e9c46a; --q4: #adb5bd;
+    --ink: #1a1a2e; --ink-2: #2d2d44; --ink-3: #555577; --ink-4: #888899;
+    --bg: #ffffff; --bg-2: #f7f7fb; --line: #e5e5ef;
+    --accent: #4361ee;
+    --radius: 8px;
+    --font: 'Inter', system-ui, sans-serif;
+    --mono: 'JetBrains Mono', 'Courier New', monospace;
+  }
+
+  body {
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--bg);
+    font-size: 13.5px;
+    line-height: 1.7;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 40px;
+  }
+
+  /* ── Cover page ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 0;
+    page-break-after: always;
+  }
+  .cover-brand { display: flex; align-items: center; gap: 14px; margin-bottom: 60px; }
+  .cover-mark {
+    width: 52px; height: 52px;
+    display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;
+    gap: 3px; border-radius: 10px; overflow: hidden;
+  }
+  .cover-mark span:nth-child(1) { background: var(--q1); }
+  .cover-mark span:nth-child(2) { background: var(--q2); }
+  .cover-mark span:nth-child(3) { background: var(--q3); }
+  .cover-mark span:nth-child(4) { background: var(--q4); }
+  .cover-brand-name { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; }
+  .cover h1 { font-size: 48px; font-weight: 700; letter-spacing: -0.04em; line-height: 1.05; margin-bottom: 20px; }
+  .cover h1 span { color: var(--ink-3); }
+  .cover-sub { font-size: 17px; color: var(--ink-3); max-width: 560px; line-height: 1.6; margin-bottom: 60px; }
+  .cover-meta { border-top: 1px solid var(--line); padding-top: 24px; display: flex; gap: 40px; flex-wrap: wrap; }
+  .cover-meta-item label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink-4); font-weight: 600; display: block; }
+  .cover-meta-item span { font-size: 14px; font-weight: 500; }
+
+  /* ── TOC ── */
+  .toc { page-break-after: always; }
+  .toc h2 { font-size: 22px; font-weight: 700; margin-bottom: 28px; letter-spacing: -0.025em; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc > ol > li { counter-increment: toc; margin-bottom: 6px; }
+  .toc > ol > li::before { content: counter(toc) ". "; font-weight: 600; color: var(--accent); }
+  .toc a { color: var(--ink-2); text-decoration: none; font-weight: 500; }
+  .toc .toc-sub { list-style: none; margin: 4px 0 4px 24px; }
+  .toc .toc-sub li { font-size: 12.5px; color: var(--ink-3); margin-bottom: 3px; }
+  .toc .toc-sub li::before { content: "— "; }
+
+  /* ── Sections ── */
+  .section { margin-bottom: 56px; }
+  .section-break { page-break-before: always; }
+  h2.section-title {
+    font-size: 26px; font-weight: 700; letter-spacing: -0.03em;
+    border-bottom: 3px solid var(--accent);
+    padding-bottom: 10px; margin-bottom: 28px;
+  }
+  h2.section-title .section-num { color: var(--accent); margin-right: 8px; }
+  h3 { font-size: 16px; font-weight: 700; margin: 28px 0 10px; letter-spacing: -0.015em; }
+  h4 { font-size: 13.5px; font-weight: 700; margin: 18px 0 8px; color: var(--ink-2); }
+  p { margin-bottom: 12px; }
+  ul, ol { padding-left: 22px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+
+  /* ── Callout boxes ── */
+  .callout {
+    border-left: 4px solid; border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 14px 18px; margin: 20px 0; font-size: 13px;
+  }
+  .callout-info  { border-color: var(--accent); background: #eef0fd; }
+  .callout-warn  { border-color: var(--q3);     background: #fdf8e6; }
+  .callout-error { border-color: var(--q1);     background: #fdecea; }
+  .callout-ok    { border-color: var(--q2);     background: #e8f6f4; }
+  .callout-title { font-weight: 700; margin-bottom: 4px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── Code ── */
+  pre {
+    background: #1e1e2e; color: #cdd6f4; border-radius: var(--radius);
+    padding: 18px 20px; margin: 16px 0; overflow-x: auto;
+    font-family: var(--mono); font-size: 12px; line-height: 1.6;
+  }
+  code { font-family: var(--mono); font-size: 12px; }
+  p code, li code {
+    background: #f0f0f8; color: #4361ee; padding: 1px 5px; border-radius: 4px;
+  }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th { background: var(--ink); color: white; padding: 9px 14px; text-align: left; font-weight: 600; font-size: 11.5px; }
+  td { padding: 9px 14px; border-bottom: 1px solid var(--line); }
+  tr:nth-child(even) td { background: var(--bg-2); }
+
+  /* ── Phase boxes ── */
+  .phase {
+    border: 1px solid var(--line); border-radius: 10px;
+    margin: 20px 0; overflow: hidden;
+  }
+  .phase-header {
+    background: var(--ink); color: white;
+    padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+  }
+  .phase-num {
+    background: var(--accent); color: white;
+    width: 30px; height: 30px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0;
+  }
+  .phase-header h3 { margin: 0; color: white; font-size: 15px; }
+  .phase-header span { color: rgba(255,255,255,0.55); font-size: 12px; }
+  .phase-body { padding: 20px; }
+
+  /* ── Error cards ── */
+  .error-card {
+    border: 1px solid #fca5a5; border-radius: var(--radius);
+    margin: 16px 0; overflow: hidden;
+  }
+  .error-card-head { background: var(--q1); color: white; padding: 10px 16px; font-weight: 700; font-size: 13px; }
+  .error-card-body { padding: 14px 16px; }
+  .error-card-body h4 { margin: 10px 0 4px; font-size: 12.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+  /* ── File tree ── */
+  .file-tree {
+    background: #1e1e2e; color: #cdd6f4; border-radius: var(--radius);
+    padding: 18px 20px; font-family: var(--mono); font-size: 12px;
+    line-height: 1.9; margin: 16px 0;
+  }
+  .file-tree .dir { color: #89b4fa; font-weight: 600; }
+  .file-tree .file { color: #cdd6f4; }
+  .file-tree .comment { color: #6c7086; }
+
+  /* ── SDLC diagram ── */
+  .sdlc {
+    display: flex; gap: 0; margin: 24px 0; flex-wrap: wrap;
+  }
+  .sdlc-step {
+    flex: 1; min-width: 100px; text-align: center;
+    background: var(--bg-2); border: 1px solid var(--line);
+    padding: 14px 10px; position: relative;
+  }
+  .sdlc-step:not(:last-child)::after {
+    content: '→'; position: absolute; right: -10px; top: 50%;
+    transform: translateY(-50%); font-size: 16px; color: var(--accent);
+    z-index: 1;
+  }
+  .sdlc-step .sdlc-icon { font-size: 22px; margin-bottom: 6px; }
+  .sdlc-step .sdlc-label { font-size: 11px; font-weight: 700; color: var(--ink-3); }
+
+  /* ── Deployment steps ── */
+  .deploy-step {
+    display: flex; gap: 16px; margin: 16px 0; align-items: flex-start;
+  }
+  .deploy-step-num {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--accent); color: white;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 2px;
+  }
+  .deploy-step-content h4 { margin: 0 0 6px; font-size: 14px; }
+
+  @media print {
+    body { padding: 24px 32px; font-size: 12.5px; }
+    .cover { min-height: auto; padding: 40px 0 60px; }
+    pre { font-size: 11px; }
+    .section-break { page-break-before: always; }
+    a { color: inherit; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <div class="cover-brand">
+    <div class="cover-mark"><span></span><span></span><span></span><span></span></div>
+    <div class="cover-brand-name">TaskMatrix</div>
+  </div>
+  <h1>Project Documentation<br /><span>Development Report</span></h1>
+  <p class="cover-sub">
+    A complete account of how TaskMatrix was conceived, designed, built, debugged, and deployed —
+    from initial requirements through production. Includes all errors encountered and how each was resolved.
+  </p>
+  <div class="cover-meta">
+    <div class="cover-meta-item"><label>Document Type</label><span>Project Development Report</span></div>
+    <div class="cover-meta-item"><label>Stack</label><span>MERN (MongoDB · Express · React · Node.js)</span></div>
+    <div class="cover-meta-item"><label>Version</label><span>1.0 — Initial Release</span></div>
+    <div class="cover-meta-item"><label>Year</label><span>2026</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ TOC -->
+<div class="toc section-break">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#s1">Project Overview</a>
+      <ul class="toc-sub">
+        <li>What is TaskMatrix?</li>
+        <li>The problem it solves</li>
+        <li>Target users &amp; key features</li>
+      </ul>
+    </li>
+    <li><a href="#s2">Software Development Lifecycle</a>
+      <ul class="toc-sub">
+        <li>Overview of the SDLC approach</li>
+        <li>Phase-by-phase breakdown</li>
+      </ul>
+    </li>
+    <li><a href="#s3">Phase 1 – Requirements Gathering</a></li>
+    <li><a href="#s4">Phase 2 – System &amp; UI Design</a></li>
+    <li><a href="#s5">Phase 3 – Project Setup &amp; Environment</a></li>
+    <li><a href="#s6">Phase 4 – Backend Development</a>
+      <ul class="toc-sub">
+        <li>Database models</li>
+        <li>Authentication system</li>
+        <li>Task management API</li>
+        <li>AI integration</li>
+      </ul>
+    </li>
+    <li><a href="#s7">Phase 5 – Frontend Development</a>
+      <ul class="toc-sub">
+        <li>Authentication pages</li>
+        <li>Board &amp; task management</li>
+        <li>Analytics, Journal, Team, Notifications</li>
+        <li>Settings &amp; dark mode</li>
+      </ul>
+    </li>
+    <li><a href="#s8">Errors &amp; Problems Encountered</a></li>
+    <li><a href="#s9">Deployment Guide</a></li>
+    <li><a href="#s10">Future Enhancements</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S1 -->
+<div class="section section-break" id="s1">
+  <h2 class="section-title"><span class="section-num">1</span>Project Overview</h2>
+
+  <h3>What is TaskMatrix?</h3>
+  <p>
+    TaskMatrix is a full-stack productivity web application built on the MERN stack. It implements the
+    <strong>Eisenhower Matrix</strong> — a time-management method popularised by US President Dwight D. Eisenhower —
+    which sorts every task into one of four quadrants based on urgency and importance:
+  </p>
+  <table>
+    <tr><th>Quadrant</th><th>Criteria</th><th>Action</th></tr>
+    <tr><td><strong>Q1 – Do First</strong></td><td>Urgent + Important</td><td>Handle immediately</td></tr>
+    <tr><td><strong>Q2 – Schedule</strong></td><td>Not Urgent + Important</td><td>Plan and schedule</td></tr>
+    <tr><td><strong>Q3 – Delegate</strong></td><td>Urgent + Not Important</td><td>Hand off to others</td></tr>
+    <tr><td><strong>Q4 – Eliminate</strong></td><td>Not Urgent + Not Important</td><td>Drop or defer</td></tr>
+  </table>
+  <p>
+    By forcing every task into one of these quadrants, TaskMatrix helps users immediately see what truly
+    demands their attention versus what is just noise. The application layers AI-assisted quadrant suggestions,
+    deadline tracking, team collaboration, analytics, and a personal journal on top of this framework.
+  </p>
+
+  <h3>The Problem It Solves</h3>
+  <p>
+    Modern students, professionals, and teams face an overwhelming volume of tasks with no clear way to
+    prioritise. Email inboxes, calendar notifications, group chats, and todo lists all compete for attention.
+    People end up working on whatever feels most urgent in the moment — often Q3 or Q4 tasks — while genuinely
+    important Q2 work (long-term projects, skill development, thesis writing) never gets started.
+  </p>
+  <p>TaskMatrix solves this by:</p>
+  <ul>
+    <li>Forcing conscious categorisation of every task before it appears on the board</li>
+    <li>Using AI to suggest the correct quadrant so users cannot deceive themselves</li>
+    <li>Surfacing overdue tasks prominently and sending notifications</li>
+    <li>Providing real analytics so users see their own productivity patterns</li>
+    <li>Keeping each user's data completely private and isolated</li>
+  </ul>
+
+  <h3>Target Users</h3>
+  <ul>
+    <li><strong>University students</strong> juggling coursework, internship applications, and social commitments</li>
+    <li><strong>Individual professionals</strong> managing personal and work tasks in one place</li>
+    <li><strong>Small teams</strong> who want to collaborate and share task ownership without a heavyweight tool like Jira</li>
+  </ul>
+
+  <h3>Key Features</h3>
+  <table>
+    <tr><th>Feature</th><th>Description</th></tr>
+    <tr><td>Eisenhower Board</td><td>Four-quadrant drag-and-drop board; tasks snap between quadrants</td></tr>
+    <tr><td>AI Quadrant Suggestion</td><td>Claude AI reads task title &amp; notes and recommends the correct quadrant</td></tr>
+    <tr><td>AI Misclassification Warning</td><td>Warns user when their chosen quadrant may be wrong</td></tr>
+    <tr><td>AI Subtask Generation</td><td>Breaks a complex task into a checklist of subtasks</td></tr>
+    <tr><td>Per-User Data Isolation</td><td>All tasks, trash, and data are private to each authenticated user</td></tr>
+    <tr><td>Team Collaboration</td><td>Invite members by TaskMatrix email; assign roles (custom or preset)</td></tr>
+    <tr><td>Analytics Dashboard</td><td>14-day bar chart, quadrant distribution, real activity heatmap</td></tr>
+    <tr><td>Notifications</td><td>Real-time overdue and due-soon alerts from actual task data</td></tr>
+    <tr><td>Personal Journal</td><td>Private note-taking with search, create, edit, delete entries</td></tr>
+    <tr><td>Dark Mode</td><td>System-wide dark mode persisted to DB and localStorage</td></tr>
+    <tr><td>Password Reset</td><td>Two-step reset flow (email verification → new password)</td></tr>
+    <tr><td>Account Lockout</td><td>5 failed logins trigger a 15-minute lockout for security</td></tr>
+    <tr><td>Trash / Recovery</td><td>Soft-deleted tasks go to trash; can be restored or permanently deleted</td></tr>
+    <tr><td>CSV / PDF Export</td><td>Export task data from the Analytics page</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S2 -->
+<div class="section section-break" id="s2">
+  <h2 class="section-title"><span class="section-num">2</span>Software Development Lifecycle</h2>
+
+  <p>
+    TaskMatrix was built following an <strong>iterative, agile-influenced SDLC</strong>. Rather than a strict
+    waterfall approach, each major feature was designed, coded, tested, and refined before the next was started.
+    Bugs and user feedback drove continuous improvement loops throughout.
+  </p>
+
+  <div class="sdlc">
+    <div class="sdlc-step"><div class="sdlc-icon">📋</div><div class="sdlc-label">Requirements</div></div>
+    <div class="sdlc-step"><div class="sdlc-icon">🎨</div><div class="sdlc-label">Design</div></div>
+    <div class="sdlc-step"><div class="sdlc-icon">⚙️</div><div class="sdlc-label">Setup</div></div>
+    <div class="sdlc-step"><div class="sdlc-icon">🏗️</div><div class="sdlc-label">Backend</div></div>
+    <div class="sdlc-step"><div class="sdlc-icon">💻</div><div class="sdlc-label">Frontend</div></div>
+    <div class="sdlc-step"><div class="sdlc-icon">🐛</div><div class="sdlc-label">Debug</div></div>
+    <div class="sdlc-step"><div class="sdlc-icon">🚀</div><div class="sdlc-label">Deploy</div></div>
+  </div>
+
+  <p>The process moved through seven primary phases, each building on the last:</p>
+  <ol>
+    <li><strong>Requirements Gathering</strong> — Defined user stories, functional requirements (FR), and non-functional requirements from the SRS document provided.</li>
+    <li><strong>System &amp; UI Design</strong> — Designed the data model, API contract, and UI layout based on design files supplied.</li>
+    <li><strong>Project Setup</strong> — Scaffolded the MERN project structure, installed dependencies, configured environment variables.</li>
+    <li><strong>Backend Development</strong> — Built Express API with MongoDB models, authentication, task CRUD, and AI endpoints.</li>
+    <li><strong>Frontend Development</strong> — Built all React pages, context providers, components, and CSS.</li>
+    <li><strong>Debugging &amp; Iteration</strong> — Resolved 14+ distinct bugs across database connectivity, authentication, UI isolation, and data integrity.</li>
+    <li><strong>Deployment Preparation</strong> — Configured build pipeline, documented deployment steps for production hosting.</li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S3 -->
+<div class="section section-break" id="s3">
+  <h2 class="section-title"><span class="section-num">3</span>Phase 1 – Requirements Gathering</h2>
+
+  <p>
+    Requirements were collected from two sources: a detailed <strong>Software Requirements Specification (SRS)</strong>
+    document and a set of <strong>UI design files</strong> supplied by the project owner. Iterative feedback sessions
+    throughout development added further requirements.
+  </p>
+
+  <h3>Functional Requirements (Selected)</h3>
+  <table>
+    <tr><th>ID</th><th>Requirement</th><th>Priority</th></tr>
+    <tr><td>FR-101</td><td>Users must be able to register with email, display name, and a strong password</td><td>High</td></tr>
+    <tr><td>FR-102</td><td>Users must be able to log in and receive a JWT valid for 30 days</td><td>High</td></tr>
+    <tr><td>FR-103</td><td>Accounts must lock for 15 minutes after 5 failed login attempts</td><td>High</td></tr>
+    <tr><td>FR-104</td><td>Users must be able to reset password via a tokenised two-step flow</td><td>High</td></tr>
+    <tr><td>FR-201</td><td>Tasks must have: title, notes, quadrant, priority, labels, due date, assignee</td><td>High</td></tr>
+    <tr><td>FR-202</td><td>Tasks must be private per user; no cross-user data leakage</td><td>High</td></tr>
+    <tr><td>FR-203</td><td>Tasks must be draggable between quadrants</td><td>High</td></tr>
+    <tr><td>FR-204</td><td>Deleted tasks go to Trash and can be restored or permanently deleted</td><td>Medium</td></tr>
+    <tr><td>FR-301</td><td>AI must suggest the correct Eisenhower quadrant given a task title</td><td>High</td></tr>
+    <tr><td>FR-302</td><td>AI must be able to generate a subtask checklist from a task title</td><td>Medium</td></tr>
+    <tr><td>FR-413</td><td>System must warn users when their chosen quadrant differs from AI recommendation</td><td>Medium</td></tr>
+    <tr><td>FR-501</td><td>Analytics must show real completion rates, not randomly generated data</td><td>High</td></tr>
+    <tr><td>FR-601</td><td>Team members must only be invitable if they have a TaskMatrix account</td><td>High</td></tr>
+    <tr><td>FR-701</td><td>Journal page must let users create, edit, search, and delete personal notes</td><td>Medium</td></tr>
+  </table>
+
+  <h3>Non-Functional Requirements</h3>
+  <ul>
+    <li><strong>Security:</strong> Passwords hashed with bcrypt (cost factor 12); JWT signed with secret; no plain-text secrets in code</li>
+    <li><strong>Privacy:</strong> All task queries filter by <code>owner: req.user._id</code> at the database level</li>
+    <li><strong>Performance:</strong> AI responses cached in-memory (5 min TTL, 500-entry limit) to reduce API calls</li>
+    <li><strong>Usability:</strong> App must work without page refresh between navigation; no fake/placeholder data in production</li>
+    <li><strong>Accessibility:</strong> All interactive elements have keyboard support (<code>tabIndex</code>, <code>onKeyDown</code>)</li>
+  </ul>
+
+  <h3>Post-Launch Requirements (User Feedback)</h3>
+  <p>The following requirements were added during development based on direct user feedback:</p>
+  <ul>
+    <li>Remove Google OAuth button (OAuth credentials were not available)</li>
+    <li>Remove demo/seed tasks that appeared for every new user</li>
+    <li>Eliminate hardcoded team members (Maya, Omar, Iris) from the team page</li>
+    <li>Remove "Spring '26 Semester" and "Senior Thesis" workspace sidebar entries</li>
+    <li>Remove all free/pro subscription plan UI references</li>
+    <li>Replace the "Personal" page with a full journaling/note-taking page</li>
+    <li>Remove the Ctrl+K keyboard shortcut symbol from the search bar</li>
+    <li>Prevent guest users from seeing tasks created by registered accounts</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S4 -->
+<div class="section section-break" id="s4">
+  <h2 class="section-title"><span class="section-num">4</span>Phase 2 – System &amp; UI Design</h2>
+
+  <h3>System Architecture</h3>
+  <p>TaskMatrix follows a classic three-tier architecture:</p>
+  <ul>
+    <li><strong>Presentation layer</strong> — React SPA served by Vite dev server (development) or a static file server (production)</li>
+    <li><strong>Application layer</strong> — Node.js + Express REST API on port 5000</li>
+    <li><strong>Data layer</strong> — MongoDB database (<code>taskmatrix</code> database, localhost in development)</li>
+  </ul>
+
+  <h3>Data Model Design</h3>
+  <p>Two primary Mongoose models were designed:</p>
+
+  <h4>User Model</h4>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td>displayName</td><td>String</td><td>Required, trimmed</td></tr>
+    <tr><td>email</td><td>String</td><td>Unique, lowercase, trimmed</td></tr>
+    <tr><td>password</td><td>String</td><td><code>select: false</code> — never returned by default</td></tr>
+    <tr><td>timezone</td><td>String</td><td>Auto-detected on register</td></tr>
+    <tr><td>avatarInitials</td><td>String</td><td>Auto-derived from displayName</td></tr>
+    <tr><td>loginAttempts</td><td>Number</td><td>Tracks failed logins; default 0</td></tr>
+    <tr><td>lockUntil</td><td>Date</td><td>Set to 15 min future after 5 failures</td></tr>
+    <tr><td>passwordResetToken</td><td>String</td><td>SHA-256 hash of reset token; <code>select: false</code></td></tr>
+    <tr><td>passwordResetExpires</td><td>Date</td><td>1-hour expiry; <code>select: false</code></td></tr>
+    <tr><td>darkMode</td><td>Boolean</td><td>Persisted preference</td></tr>
+  </table>
+
+  <h4>Task Model</h4>
+  <table>
+    <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+    <tr><td>title</td><td>String</td><td>Required</td></tr>
+    <tr><td>notes</td><td>String</td><td>Optional body text</td></tr>
+    <tr><td>quadrant</td><td>Enum</td><td>q1 | q2 | q3 | q4</td></tr>
+    <tr><td>priority</td><td>Enum</td><td>High | Medium | Low</td></tr>
+    <tr><td>labels</td><td>[String]</td><td>Free-form tags</td></tr>
+    <tr><td>dueDate</td><td>Date</td><td>Optional deadline</td></tr>
+    <tr><td>completed</td><td>Boolean</td><td>Default false</td></tr>
+    <tr><td>completedAt</td><td>Date</td><td>Set when task is toggled done</td></tr>
+    <tr><td>owner</td><td>ObjectId</td><td>Ref to User; indexed; enforces privacy</td></tr>
+    <tr><td>order</td><td>Number</td><td>For drag-and-drop ordering within quadrant</td></tr>
+    <tr><td>comments</td><td>[Object]</td><td>Array of {user, body, createdAt}</td></tr>
+    <tr><td>activity</td><td>[Object]</td><td>Audit log of changes</td></tr>
+  </table>
+
+  <h3>API Contract Design</h3>
+  <p>All API routes are prefixed with <code>/api</code>. The following route groups were designed:</p>
+  <table>
+    <tr><th>Group</th><th>Base Path</th><th>Auth Required</th></tr>
+    <tr><td>Authentication</td><td>/api/auth</td><td>Partial (some public)</td></tr>
+    <tr><td>Tasks</td><td>/api/tasks</td><td>Yes — all routes</td></tr>
+    <tr><td>AI</td><td>/api/ai</td><td>Yes — all routes</td></tr>
+  </table>
+
+  <h3>UI Design</h3>
+  <p>
+    The UI was designed around a split-layout pattern: a fixed 232px sidebar on the left for navigation,
+    and a scrollable content area on the right with a sticky topbar. The design system used CSS custom
+    properties for all colours, typography, spacing, and radius values to enable global theming including
+    dark mode.
+  </p>
+  <p>The four quadrant colours were chosen for intuitive visual priority:</p>
+  <ul>
+    <li><strong>Q1 (Do First)</strong> — Red (<code>#e63946</code>) — urgency and danger</li>
+    <li><strong>Q2 (Schedule)</strong> — Teal (<code>#2a9d8f</code>) — calm growth</li>
+    <li><strong>Q3 (Delegate)</strong> — Amber (<code>#e9c46a</code>) — caution</li>
+    <li><strong>Q4 (Eliminate)</strong> — Grey (<code>#adb5bd</code>) — low significance</li>
+  </ul>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S5 -->
+<div class="section section-break" id="s5">
+  <h2 class="section-title"><span class="section-num">5</span>Phase 3 – Project Setup &amp; Environment</h2>
+
+  <h3>Repository Structure</h3>
+  <div class="file-tree">
+    <span class="dir">TaskMatrix/</span><br>
+    &nbsp;&nbsp;<span class="dir">server/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Node.js + Express backend</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">server.js</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Entry point</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">.env</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Environment variables (not committed)</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">models/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Mongoose schemas</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">controllers/</span> &nbsp;<span class="comment"># Route handler logic</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">routes/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Express router definitions</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">middleware/</span> &nbsp;&nbsp;&nbsp;<span class="comment"># auth protect, error handler</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">config/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Database connection</span><br>
+    &nbsp;&nbsp;<span class="dir">client/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># React + Vite frontend</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="file">vite.config.js</span>&nbsp;<span class="comment"># Proxy /api → localhost:5000</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">src/</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">main.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># React entry, dark mode init</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">App.jsx</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Router + RequireAuth guard</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="file">index.css</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Global design system CSS</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">context/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># AuthContext, TaskContext</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">pages/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># One file per route/page</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">components/</span> &nbsp;&nbsp;<span class="comment"># Reusable UI components</span><br>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="dir">services/</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="comment"># Axios API helpers</span>
+  </div>
+
+  <h3>Dependencies Installed</h3>
+  <h4>Server (<code>server/package.json</code>)</h4>
+  <table>
+    <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td>express</td><td>^4.18</td><td>HTTP server and routing</td></tr>
+    <tr><td>mongoose</td><td>^8.x</td><td>MongoDB ODM</td></tr>
+    <tr><td>jsonwebtoken</td><td>^9.x</td><td>JWT creation and verification</td></tr>
+    <tr><td>bcryptjs</td><td>^2.4</td><td>Password hashing</td></tr>
+    <tr><td>cors</td><td>^2.8</td><td>Cross-origin request handling</td></tr>
+    <tr><td>dotenv</td><td>^16.x</td><td>Environment variable loading</td></tr>
+    <tr><td>nodemon</td><td>^3.x</td><td>Auto-restart in development</td></tr>
+    <tr><td>@anthropic-ai/sdk</td><td>latest</td><td>Claude AI API client</td></tr>
+  </table>
+
+  <h4>Client (<code>client/package.json</code>)</h4>
+  <table>
+    <tr><th>Package</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td>react</td><td>^18.x</td><td>UI framework</td></tr>
+    <tr><td>react-dom</td><td>^18.x</td><td>React DOM renderer</td></tr>
+    <tr><td>react-router-dom</td><td>^6.x</td><td>Client-side routing</td></tr>
+    <tr><td>axios</td><td>^1.x</td><td>HTTP client for API calls</td></tr>
+    <tr><td>@hello-pangea/dnd</td><td>latest</td><td>Drag-and-drop for the board</td></tr>
+    <tr><td>vite</td><td>^5.x</td><td>Build tool and dev server</td></tr>
+    <tr><td>@vitejs/plugin-react</td><td>^4.x</td><td>React fast-refresh for Vite</td></tr>
+  </table>
+
+  <h3>Environment Variables (<code>server/.env</code>)</h3>
+  <pre>PORT=5000
+JWT_SECRET=your_secret_key_here_change_in_production
+MONGO_URI=mongodb://localhost:27017/taskmatrix
+NODE_ENV=development
+ANTHROPIC_API_KEY=your_anthropic_api_key_here</pre>
+
+  <div class="callout callout-warn">
+    <div class="callout-title">⚠ Security</div>
+    The <code>.env</code> file is listed in <code>.gitignore</code> and is never committed to the repository.
+    Never share JWT_SECRET or ANTHROPIC_API_KEY publicly.
+  </div>
+
+  <h3>Vite Proxy Configuration</h3>
+  <p>
+    During development, the React app runs on port 5173 while the API runs on port 5000. Vite's built-in
+    proxy rewrites any request starting with <code>/api</code> to the backend, avoiding CORS issues:
+  </p>
+  <pre>// vite.config.js
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    proxy: {
+      '/api': 'http://localhost:5000'
+    }
+  }
+})</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S6 -->
+<div class="section section-break" id="s6">
+  <h2 class="section-title"><span class="section-num">6</span>Phase 4 – Backend Development</h2>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">A</div>
+      <div><h3>Server Entry Point</h3><span>server/server.js</span></div>
+    </div>
+    <div class="phase-body">
+      <p>The Express application was initialised with CORS enabled for the client origin, JSON body parsing middleware, and three route groups:</p>
+      <pre>const app = express();
+connectDB();
+app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+app.use(express.json());
+app.use('/api/auth',  require('./routes/auth'));
+app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/ai',    require('./routes/ai'));
+app.use(errorHandler);</pre>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">B</div>
+      <div><h3>Database Models</h3><span>server/models/</span></div>
+    </div>
+    <div class="phase-body">
+      <p><strong>User model key features:</strong></p>
+      <ul>
+        <li>The password field uses <code>select: false</code> so it is never accidentally returned in API responses</li>
+        <li>A <code>pre('save')</code> hook hashes the password with bcrypt only when it has been modified, preventing double-hashing</li>
+        <li>The <code>comparePassword</code> instance method wraps <code>bcrypt.compare</code> for clean controller usage</li>
+        <li>The <code>isLocked</code> virtual property computes lockout status from <code>lockUntil</code></li>
+      </ul>
+      <p><strong>Task model key feature:</strong></p>
+      <ul>
+        <li>The <code>owner</code> field (ObjectId referencing User, with a database index) is the cornerstone of data isolation. Every query in the task controller filters by <code>owner: req.user._id</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">C</div>
+      <div><h3>Authentication System</h3><span>server/controllers/authController.js</span></div>
+    </div>
+    <div class="phase-body">
+      <h4>Registration</h4>
+      <p>Validates password strength (8+ chars, uppercase, number, special character), checks for duplicate email, creates user, returns JWT.</p>
+
+      <h4>Login</h4>
+      <p>Checks lockout first. Compares password with bcrypt. On failure, increments <code>loginAttempts</code> using <code>findByIdAndUpdate</code> (not <code>save()</code>) to avoid triggering the password pre-save hook. On success, resets counters the same way.</p>
+
+      <div class="callout callout-error">
+        <div class="callout-title">🐛 Critical Bug Found &amp; Fixed</div>
+        The original implementation used <code>user.save()</code> to update login attempt counters.
+        Because the password field was loaded into the document (via <code>select('+password')</code>),
+        Mongoose's pre-save hook re-hashed the already-hashed password on every successful login.
+        The next login attempt then failed because bcrypt.compare(plain, hash(hash)) always returns false.
+        <strong>Fix:</strong> replaced all counter updates with <code>User.findByIdAndUpdate()</code>,
+        which bypasses the pre-save hook entirely.
+      </div>
+
+      <h4>Password Reset</h4>
+      <ol>
+        <li><code>forgotPassword</code>: generates <code>crypto.randomBytes(32)</code> token, stores the SHA-256 hash in the database with a 1-hour expiry, returns the raw token to the client (in a real deployment this would be emailed)</li>
+        <li><code>resetPassword</code>: hashes the submitted token, queries the database for a matching unexpired record, sets the new password (triggering the bcrypt pre-save hook correctly), clears lockout fields</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">D</div>
+      <div><h3>Task Management API</h3><span>server/controllers/taskController.js</span></div>
+    </div>
+    <div class="phase-body">
+      <p>Every route handler begins with an <code>owner</code> filter:</p>
+      <pre>// Example — getAll
+const tasks = await Task.find({ owner: req.user._id, deleted: false })
+  .sort({ order: 1, createdAt: -1 });
+
+// Example — create
+const task = await Task.create({ ...req.body, owner: req.user._id });</pre>
+      <p>Soft deletion: tasks are marked <code>deleted: true</code> rather than removed. The Trash endpoint returns <code>{ deleted: true }</code> records. <code>permanentDelete</code> removes the document entirely.</p>
+      <p>The <code>toggleDone</code> handler sets <code>completedAt</code> to the current timestamp when completing a task, which powers the real analytics heatmap and bar chart.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">E</div>
+      <div><h3>AI Integration</h3><span>server/controllers/aiController.js</span></div>
+    </div>
+    <div class="phase-body">
+      <p>Three AI endpoints use the Anthropic Claude API:</p>
+      <ul>
+        <li><strong>/suggest</strong> — Given a task title and notes, returns the recommended Eisenhower quadrant with a brief explanation</li>
+        <li><strong>/subtasks</strong> — Returns a checklist of 3–7 concrete subtasks for a given task</li>
+        <li><strong>/misclassify</strong> — Compares the user's chosen quadrant against the AI suggestion; returns a warning if they differ (FR-413)</li>
+      </ul>
+      <p>An in-memory cache (<code>Map</code>) prevents redundant API calls. Cache keys combine the task title and notes. Entries expire after 5 minutes and the cache is capped at 500 entries.</p>
+      <pre>const aiCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_MAX = 500;
+
+function getCached(key) {
+  const entry = aiCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL) { aiCache.delete(key); return null; }
+  return entry.data;
+}</pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S7 -->
+<div class="section section-break" id="s7">
+  <h2 class="section-title"><span class="section-num">7</span>Phase 5 – Frontend Development</h2>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">A</div>
+      <div><h3>Application Bootstrap</h3><span>main.jsx + App.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <p><code>main.jsx</code> initialises dark mode from localStorage before React renders (prevents flash of wrong theme), then mounts the app inside <code>AuthProvider → TaskProvider → BrowserRouter</code>.</p>
+      <p><code>App.jsx</code> defines all routes. A <code>RequireAuth</code> wrapper redirects unauthenticated users to <code>/login</code>. The root <code>/</code> and all unmatched paths (<code>*</code>) redirect to <code>/login</code>.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">B</div>
+      <div><h3>Context Providers</h3><span>context/AuthContext.jsx + TaskContext.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <p><strong>AuthContext</strong> manages the authenticated user object. On mount it checks localStorage for a guest record (<code>tm_guest</code>) or a JWT token (<code>tm_token</code>), then calls <code>/api/auth/me</code> to rehydrate the session. <code>loginAsGuest()</code> clears the JWT token first so API tasks cannot bleed through.</p>
+      <p><strong>TaskContext</strong> imports AuthContext. When the user changes (login, logout, switch to guest), it either loads tasks from the API (authenticated users) or resets to an empty array (guests and unauthenticated). This was the fix that prevented guest users from seeing private account tasks.</p>
+      <pre>useEffect(() => {
+  if (!user || user.isGuest) {
+    setTasks([]);  // empty — no seed data, no leaked API tasks
+    setTrash([]);
+    setUsingApi(false);
+    return;
+  }
+  loadTasks();    // authenticated — fetch from API
+}, [user?._id, user?.isGuest, loadTasks]);</pre>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">C</div>
+      <div><h3>Login Page</h3><span>pages/LoginPage.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <ul>
+        <li>Split layout: left brand pane (logo + Eisenhower card previews) + right form pane</li>
+        <li>Tabbed Sign In / Create Account (no page reload)</li>
+        <li>Password strength meter (0–4 score: length, uppercase, number, special character)</li>
+        <li>ForgotPasswordModal: two-step (email → new password). Token is managed entirely in React state — users never see or interact with the raw hex token.</li>
+        <li>Google OAuth button was removed because real OAuth credentials were not available; the button would silently log users in as Guest instead.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">D</div>
+      <div><h3>Board Page</h3><span>pages/BoardPage.jsx + components/board/</span></div>
+    </div>
+    <div class="phase-body">
+      <p>The Board is the core feature. It renders four <code>Quadrant</code> columns inside a <code>DragDropContext</code> from <code>@hello-pangea/dnd</code>. Dragging a task card to a new column calls <code>moveTask()</code> which optimistically updates the UI then persists the new quadrant to the API.</p>
+      <p>A FilterPanel allows filtering by priority chips, label text, assignee (only "Me"), and due date windows. Active filters show as dismissible chips below the topbar. The filter count badge on the Filter button shows how many filters are active.</p>
+      <p>The <code>ASSIGNEES</code> array contains only <code>{ id: 'me', name: 'Me (you)' }</code> — no hardcoded fake names. The team invite system populates real invited members if needed.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">E</div>
+      <div><h3>Analytics Page</h3><span>pages/AnalyticsPage.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <p>All statistics derive from the real tasks array from TaskContext:</p>
+      <ul>
+        <li><strong>KPI cards:</strong> Completion rate, completed count, active count, overdue count — all calculated from actual task data</li>
+        <li><strong>14-day bar chart:</strong> For each of the last 14 days, counts tasks created and completed on that day using <code>createdAt</code> and <code>completedAt</code> timestamps</li>
+        <li><strong>Quadrant distribution:</strong> Stacked bar and row chart from live task quadrant values</li>
+        <li><strong>Productivity heatmap:</strong> Reads <code>completedAt</code> timestamps, groups by day-of-week (Mon–Sun) and hour (9am–5pm) to show when the user is most productive. Empty until the user completes their first task.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">F</div>
+      <div><h3>Journal Page</h3><span>pages/JournalPage.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <p>A two-panel note-taking page built as a replacement for the "Personal" page. The left panel lists all entries (with search). The right panel shows the editor/viewer. Entries are stored in localStorage under <code>tm_journal_&lt;userId&gt;</code> so they are isolated per user. Each entry has an <code>id</code>, <code>title</code>, <code>body</code>, <code>createdAt</code>, and <code>updatedAt</code>.</p>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">G</div>
+      <div><h3>Team Page</h3><span>pages/TeamPage.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <p>Completely rewritten from a hardcoded demo. The invite flow:</p>
+      <ol>
+        <li>User enters an email address in the InviteModal</li>
+        <li>The frontend calls <code>GET /api/auth/search?email=</code></li>
+        <li>If the backend finds a matching user, their profile is returned</li>
+        <li>The invited member is added to localStorage under <code>tm_team_&lt;userId&gt;</code></li>
+        <li>Roles are free-text with preset suggestions via <code>&lt;datalist&gt;</code></li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="phase">
+    <div class="phase-header">
+      <div class="phase-num">H</div>
+      <div><h3>Sidebar &amp; Navigation</h3><span>components/layout/Sidebar.jsx</span></div>
+    </div>
+    <div class="phase-body">
+      <ul>
+        <li>The spacer div (<code>flex: 1</code>) that created a large gap where workspace items used to be was replaced with <code>marginTop: 'auto'</code> on the bottom nav group, eliminating the empty gap</li>
+        <li>The TaskMatrix logo accepts an <code>onClick</code> prop and navigates to <code>/login</code></li>
+        <li>Logo was enlarged from 28px to 36px mark to fill the space previously occupied by workspace section headers</li>
+        <li>No workspace sections, no plan badges, no hardcoded user names</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S8 -->
+<div class="section section-break" id="s8">
+  <h2 class="section-title"><span class="section-num">8</span>Errors &amp; Problems Encountered</h2>
+  <p>The following is a complete log of every significant error discovered during development, its root cause, and how it was resolved.</p>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 1 — MongoDB Atlas Connection Refused (querySrv ECONNREFUSED)</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>Server crashed on startup with <code>querySrv ECONNREFUSED 8.8.8.8:53</code>.</p>
+      <h4>Cause</h4>
+      <p>The MongoDB Atlas URI was used in the <code>.env</code> file, but the network environment did not allow outbound DNS/TCP to Atlas clusters on port 27017.</p>
+      <h4>Fix</h4>
+      <p>Switched to a local MongoDB instance (<code>mongodb://localhost:27017/taskmatrix</code>). User was guided to start MongoDB manually: <code>"C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe"</code>.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 2 — Vite Not Recognised / npm install peer dependency conflict</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p><code>'vite' is not recognized as an internal or external command</code> when running <code>npm run dev</code>.</p>
+      <h4>Cause</h4>
+      <p>The client <code>node_modules</code> directory was not installed. A peer dependency conflict between React 18 and an older package prevented standard <code>npm install</code> from completing.</p>
+      <h4>Fix</h4>
+      <p>Ran <code>npm install --legacy-peer-deps</code> inside the <code>client/</code> directory to bypass the strict peer dependency check.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 3 — App Loaded on /board Without Authentication</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>Visiting <code>/</code> went directly to the board page without requiring login.</p>
+      <h4>Cause</h4>
+      <p>The root route <code>/</code> was mapped to <code>BoardPage</code> and the <code>RequireAuth</code> guard was not wired up correctly.</p>
+      <h4>Fix</h4>
+      <p>Changed <code>/</code> to redirect to <code>/login</code>. Added <code>RequireAuth</code> wrapper around all protected routes in <code>App.jsx</code>. Added a <code>*</code> catch-all redirect to <code>/login</code>.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 4 — Guest Session Showed Logged-in User's Private Tasks</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>After clicking "Continue without account" while a user was already logged in, the guest session displayed all tasks from the authenticated account.</p>
+      <h4>Cause</h4>
+      <p><code>loginAsGuest()</code> set the <code>tm_guest</code> key in localStorage but did not clear <code>tm_token</code>. The Axios interceptor still sent the JWT on every request, so the API returned the real user's tasks.</p>
+      <h4>Fix</h4>
+      <p>Added <code>localStorage.removeItem('tm_token')</code> to <code>loginAsGuest()</code>. Additionally, <code>TaskContext</code> was updated to reset tasks to an empty array when the user is a guest or unauthenticated.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 5 — Password Double-Hashing Bug (Critical Login Failure)</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>Users could log in once after registration, but all subsequent login attempts failed with "Invalid email or password."</p>
+      <h4>Cause</h4>
+      <p>The login controller loaded the user document with <code>.select('+password')</code>, then called <code>user.save()</code> to update <code>loginAttempts</code>. Mongoose's <code>pre('save')</code> hook ran and re-hashed the already-hashed bcrypt string. The stored password became <code>bcrypt(bcrypt(plaintext))</code>. Future <code>bcrypt.compare(plaintext, bcrypt(bcrypt(plaintext)))</code> always returned <code>false</code>.</p>
+      <h4>Fix</h4>
+      <p>Replaced all <code>user.save()</code> calls in the login flow with <code>User.findByIdAndUpdate()</code>. This method bypasses the pre-save middleware entirely, so the password hash is never touched during counter updates.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 6 — Password Reset Had No Step 2 (Dead-End Flow)</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>Clicking "Forgot password?" displayed a form, but after submitting the email, the modal only showed the raw hex token with a "Close" button. There was no way to actually set a new password.</p>
+      <h4>Cause</h4>
+      <p>The <code>ForgotPasswordModal</code> component was only half-implemented. Step 1 (email submission) called <code>/forgot-password</code> and displayed the returned token, but step 2 (setting the new password using that token) was never built.</p>
+      <h4>Fix</h4>
+      <p>Rewrote the modal as a true two-step flow. Step 1 requests the token. Step 2 hides the token in component state (users never see the hex string) and presents a new password field with the strength meter. On submit, calls <code>/reset-password</code> then auto-signs the user in.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 7 — Analytics Using Math.random() (Fake Data)</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>The 14-day productivity chart and heatmap displayed different data on every page refresh and bore no relation to the user's actual tasks.</p>
+      <h4>Cause</h4>
+      <p>Chart data was generated with <code>Math.random()</code> as a placeholder during initial development and was never replaced with real data.</p>
+      <h4>Fix</h4>
+      <p>Rewrote both charts to derive data from the tasks array in TaskContext. The bar chart filters by <code>task.createdAt</code> and <code>task.completedAt</code> per day. The heatmap groups completions by day-of-week and hour from <code>completedAt</code>.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 8 — Hardcoded Team Members &amp; Fake Workspace Items</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>The Team page showed "Maya Chen", "Omar Hassan", and "Iris Kim" as permanent members. The sidebar showed "Spring '26 Semester" and "Senior Thesis" workspace sections. The board assignee filter listed these fake names.</p>
+      <h4>Cause</h4>
+      <p>These were copied from design mockups and left as static data in the components.</p>
+      <h4>Fix</h4>
+      <p>TeamPage was completely rewritten with a real invite system backed by <code>GET /api/auth/search</code>. Sidebar workspace sections were removed. The <code>ASSIGNEES</code> array was reduced to <code>[{ id: 'me', name: 'Me (you)' }]</code>.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 9 — Seed/Demo Tasks Showing for New Users</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>Every new user saw 8 pre-populated demo tasks ("Finish CS101 lab report", "Email Prof. Nguyen", etc.) on their first login.</p>
+      <h4>Cause</h4>
+      <p>The <code>SEED</code> array in <code>TaskContext.jsx</code> was used as the initial state for <code>useState(SEED)</code>. It was also used as a fallback when the API was unreachable.</p>
+      <h4>Fix</h4>
+      <p>Deleted the entire <code>SEED</code> array. Changed the initial state to <code>useState([])</code>. The API fallback now also sets an empty array. New users see a clean empty board.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 10 — Sidebar Gap After Removing Workspace Section</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>After removing the "Spring '26 Semester" and "Senior Thesis" workspace items, a large empty gap appeared in the middle of the sidebar between the main nav items and the bottom nav items.</p>
+      <h4>Cause</h4>
+      <p>The <code>&lt;div className="tm-sidebar-spacer"&gt;</code> element (CSS <code>flex: 1</code>) always existed to push bottom items to the bottom. When workspaces filled the space above it, it was less noticeable. With them gone, the spacer created a very visible dead zone.</p>
+      <h4>Fix</h4>
+      <p>Removed the spacer div. Wrapped the bottom nav items in a container div with <code>style={{ marginTop: 'auto' }}</code>, which achieves the same bottom-anchoring effect without a visible gap. Also reduced the Brand logo bottom padding from 18px to 8px.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 11 — Google OAuth Button Logged Users In as Guest</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p>Clicking "Continue with Gmail" silently logged the user in as a Guest account rather than authenticating via Google.</p>
+      <h4>Cause</h4>
+      <p>Real Google OAuth requires registration of the app in Google Cloud Console and a valid <code>client_id</code>. Neither was available, so the button was calling <code>loginAsGuest()</code> internally as a stand-in.</p>
+      <h4>Fix</h4>
+      <p>Removed the Google OAuth button and the "or with email" divider entirely. The login form now only offers email/password sign-in and account creation.</p>
+    </div>
+  </div>
+
+  <div class="error-card">
+    <div class="error-card-head">ERROR 12 — push Rejected (Remote Has New Commits)</div>
+    <div class="error-card-body">
+      <h4>Symptom</h4>
+      <p><code>git push</code> rejected with "Updates were rejected because the remote contains work you do not have locally."</p>
+      <h4>Cause</h4>
+      <p>Changes were committed on the remote branch (by a background agent or a parallel session) while the local branch was not up to date.</p>
+      <h4>Fix</h4>
+      <p>Used <code>git fetch origin &lt;branch&gt; &amp;&amp; git rebase origin/&lt;branch&gt;</code> to replay local commits on top of the remote state, then pushed cleanly.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S9 -->
+<div class="section section-break" id="s9">
+  <h2 class="section-title"><span class="section-num">9</span>Deployment Guide</h2>
+  <p>The following steps cover deploying TaskMatrix to a production environment. The recommended stack is <strong>Render</strong> (backend API) + <strong>Vercel</strong> (frontend) + <strong>MongoDB Atlas</strong> (database), all of which have free tiers.</p>
+
+  <h3>Step 1 — Prepare MongoDB Atlas</h3>
+  <div class="deploy-step">
+    <div class="deploy-step-num">1</div>
+    <div class="deploy-step-content">
+      <h4>Create a free Atlas cluster</h4>
+      <p>Go to <strong>mongodb.com/atlas</strong> → Create a free M0 cluster → Choose a region close to your users.</p>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">2</div>
+    <div class="deploy-step-content">
+      <h4>Create a database user</h4>
+      <p>In Atlas → Security → Database Access → Add New Database User. Note the username and password.</p>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">3</div>
+    <div class="deploy-step-content">
+      <h4>Whitelist all IPs (for cloud hosting)</h4>
+      <p>Security → Network Access → Add IP Address → <code>0.0.0.0/0</code> (allows any IP — fine for render.com deployments).</p>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">4</div>
+    <div class="deploy-step-content">
+      <h4>Get the connection string</h4>
+      <p>Connect → Drivers → copy the URI. It looks like: <code>mongodb+srv://username:password@cluster.mongodb.net/taskmatrix?retryWrites=true&w=majority</code></p>
+    </div>
+  </div>
+
+  <h3>Step 2 — Deploy Backend to Render</h3>
+  <div class="deploy-step">
+    <div class="deploy-step-num">1</div>
+    <div class="deploy-step-content">
+      <h4>Create a new Web Service on Render</h4>
+      <p>render.com → New → Web Service → Connect your GitHub repository.</p>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">2</div>
+    <div class="deploy-step-content">
+      <h4>Configure the service</h4>
+      <ul>
+        <li><strong>Root Directory:</strong> <code>server</code></li>
+        <li><strong>Build Command:</strong> <code>npm install</code></li>
+        <li><strong>Start Command:</strong> <code>node server.js</code></li>
+        <li><strong>Runtime:</strong> Node</li>
+      </ul>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">3</div>
+    <div class="deploy-step-content">
+      <h4>Add environment variables in Render dashboard</h4>
+      <pre>MONGO_URI=mongodb+srv://user:pass@cluster.mongodb.net/taskmatrix
+JWT_SECRET=a_long_random_secret_at_least_32_characters
+NODE_ENV=production
+CLIENT_URL=https://your-app.vercel.app
+ANTHROPIC_API_KEY=your_anthropic_key</pre>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">4</div>
+    <div class="deploy-step-content">
+      <h4>Note the deployed API URL</h4>
+      <p>Render assigns a URL like <code>https://taskmatrix-api.onrender.com</code>. You will need this for the frontend.</p>
+    </div>
+  </div>
+
+  <h3>Step 3 — Deploy Frontend to Vercel</h3>
+  <div class="deploy-step">
+    <div class="deploy-step-num">1</div>
+    <div class="deploy-step-content">
+      <h4>Update the Vite config for production</h4>
+      <p>In <code>client/vite.config.js</code>, the proxy only applies in development. For production, the frontend must know the API URL. Set it as an environment variable:</p>
+      <pre>// client/src/services/api.js — update baseURL
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api'
+});</pre>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">2</div>
+    <div class="deploy-step-content">
+      <h4>Import your project on Vercel</h4>
+      <p>vercel.com → Add New Project → Import from GitHub → select TaskMatrix repository.</p>
+      <ul>
+        <li><strong>Root Directory:</strong> <code>client</code></li>
+        <li><strong>Framework Preset:</strong> Vite</li>
+        <li><strong>Build Command:</strong> <code>npm run build</code></li>
+        <li><strong>Output Directory:</strong> <code>dist</code></li>
+      </ul>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">3</div>
+    <div class="deploy-step-content">
+      <h4>Add environment variable</h4>
+      <pre>VITE_API_URL=https://taskmatrix-api.onrender.com/api</pre>
+    </div>
+  </div>
+  <div class="deploy-step">
+    <div class="deploy-step-num">4</div>
+    <div class="deploy-step-content">
+      <h4>Add a vercel.json for SPA routing</h4>
+      <p>Create <code>client/vercel.json</code> so all routes fall back to <code>index.html</code>:</p>
+      <pre>{
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}</pre>
+    </div>
+  </div>
+
+  <h3>Step 4 — Update CORS on Backend</h3>
+  <p>In <code>server/.env</code> (on Render), set:</p>
+  <pre>CLIENT_URL=https://your-app-name.vercel.app</pre>
+  <p>This ensures the CORS policy only allows requests from your frontend domain.</p>
+
+  <h3>Running Locally (Development)</h3>
+  <pre># Terminal 1 — Start MongoDB (Windows)
+"C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe"
+
+# Terminal 2 — Start backend
+cd server
+npm install
+npm run dev     # nodemon server.js on port 5000
+
+# Terminal 3 — Start frontend
+cd client
+npm install --legacy-peer-deps
+npm run dev     # Vite on port 5173</pre>
+
+  <div class="callout callout-ok">
+    <div class="callout-title">✓ Health Check</div>
+    Once both servers are running, visit <code>http://localhost:5000/api/health</code> — it should return <code>{"status":"ok"}</code>. Then open <code>http://localhost:5173</code> to use the app.
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ S10 -->
+<div class="section section-break" id="s10">
+  <h2 class="section-title"><span class="section-num">10</span>Future Enhancements</h2>
+  <table>
+    <tr><th>Feature</th><th>Description</th><th>Priority</th></tr>
+    <tr><td>Email delivery</td><td>Integrate SendGrid or Resend to email password reset links instead of returning tokens in the API response</td><td>High</td></tr>
+    <tr><td>Real-time collaboration</td><td>Add Socket.io so team members see task updates live without refreshing</td><td>Medium</td></tr>
+    <tr><td>Push notifications</td><td>Web Push API for overdue task alerts even when the app is not open</td><td>Medium</td></tr>
+    <tr><td>Google OAuth</td><td>Proper OAuth 2.0 integration using a registered Google Cloud Console app</td><td>Medium</td></tr>
+    <tr><td>Mobile app</td><td>React Native version sharing the same backend API</td><td>Low</td></tr>
+    <tr><td>Recurring tasks</td><td>Tasks that automatically re-create themselves on a schedule</td><td>Low</td></tr>
+    <tr><td>Calendar sync</td><td>Export due dates to Google Calendar or iCal</td><td>Low</td></tr>
+    <tr><td>Full-text search</td><td>MongoDB text index on task titles and notes for fast search</td><td>Medium</td></tr>
+  </table>
+</div>
+
+<!-- Footer -->
+<div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-4);">
+  <span>TaskMatrix — Project Documentation</span>
+  <span>© 2026 TaskMatrix</span>
+</div>
+
+</body>
+</html>

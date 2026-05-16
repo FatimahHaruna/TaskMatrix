@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TaskMatrix — Technical Manual</title>
+<style>
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ── Tokens ── */
+:root {
+  --ink:       #0a0a0a;
+  --ink-2:     #2a2926;
+  --ink-3:     #5a5854;
+  --ink-4:     #908d86;
+  --bg:        #fafaf9;
+  --bg-2:      #f4f3ef;
+  --bg-3:      #ecebe5;
+  --line:      rgba(10,10,10,0.09);
+  --line-2:    rgba(10,10,10,0.15);
+  --accent:    #2f5fff;
+  --accent-s:  #e6ecff;
+  --q1:        #e23b3b;
+  --q1-soft:   #fde8e8;
+  --q2:        #2f5fff;
+  --q2-soft:   #e6ecff;
+  --q3:        #e89414;
+  --q3-soft:   #fcebd1;
+  --q4:        #208a5b;
+  --q4-soft:   #def0e6;
+  --radius:    10px;
+  --font:      'Inter', system-ui, sans-serif;
+  --mono:      'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* ── Base ── */
+html { font-size: 15px; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Page shell ── */
+.page-wrap {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+
+/* ── Cover ── */
+.cover {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 80px 40px 60px;
+  max-width: 1060px;
+  margin: 0 auto;
+  border-bottom: 2px solid var(--line-2);
+}
+.cover-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 36px);
+  grid-template-rows: repeat(2, 36px);
+  gap: 6px;
+  margin-bottom: 40px;
+}
+.cover-grid span {
+  border-radius: 8px;
+}
+.cover-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 16px;
+}
+.cover h1 {
+  font-size: clamp(38px, 6vw, 60px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  margin-bottom: 20px;
+}
+.cover-sub {
+  font-size: 18px;
+  color: var(--ink-3);
+  max-width: 560px;
+  line-height: 1.6;
+  margin-bottom: 48px;
+}
+.cover-meta {
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+.cover-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cover-meta-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-4);
+}
+.cover-meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+
+/* ── TOC ── */
+.toc {
+  padding: 60px 0 40px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 60px;
+}
+.toc h2 {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin-bottom: 28px;
+}
+.toc-section {
+  margin-bottom: 20px;
+}
+.toc-section-link {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink-2);
+  font-weight: 600;
+  font-size: 15px;
+  margin-bottom: 6px;
+  transition: color 0.15s;
+}
+.toc-section-link:hover { color: var(--accent); }
+.toc-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink-4);
+  font-family: var(--mono);
+  flex-shrink: 0;
+  width: 28px;
+}
+.toc-sub {
+  padding-left: 38px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.toc-sub a {
+  font-size: 13px;
+  color: var(--ink-3);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.toc-sub a:hover { color: var(--accent); }
+
+/* ── Sections ── */
+.section {
+  margin-bottom: 72px;
+  scroll-margin-top: 32px;
+}
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--line-2);
+}
+.section-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-4);
+  flex-shrink: 0;
+}
+.section h2 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+/* ── Subsections ── */
+.subsection {
+  margin-bottom: 48px;
+  scroll-margin-top: 24px;
+}
+.subsection h3 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  margin-bottom: 12px;
+  margin-top: 36px;
+}
+.subsection h4 {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink-2);
+  margin-bottom: 8px;
+  margin-top: 24px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-size: 11px;
+}
+
+/* ── Prose ── */
+p {
+  margin-bottom: 14px;
+  color: var(--ink-2);
+  font-size: 15px;
+}
+p:last-child { margin-bottom: 0; }
+
+ul, ol {
+  padding-left: 22px;
+  margin-bottom: 14px;
+  color: var(--ink-2);
+}
+li {
+  margin-bottom: 5px;
+  font-size: 15px;
+}
+li:last-child { margin-bottom: 0; }
+
+strong { font-weight: 700; color: var(--ink); }
+em { font-style: italic; }
+
+/* ── Code ── */
+code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 5px;
+  padding: 1px 6px;
+  color: #c0392b;
+}
+
+pre {
+  background: #1a1a1a;
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  overflow-x: auto;
+  margin: 20px 0;
+  line-height: 1.6;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+pre code {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  background: none;
+  border: none;
+  padding: 0;
+  color: #e2e8f0;
+  border-radius: 0;
+}
+
+/* Syntax highlight classes */
+.kw  { color: #c792ea; } /* keyword */
+.fn  { color: #82aaff; } /* function */
+.str { color: #c3e88d; } /* string */
+.cm  { color: #546e7a; } /* comment */
+.num { color: #f78c6c; } /* number */
+.cl  { color: #ffcb6b; } /* class / constructor */
+.op  { color: #89ddff; } /* operator / punctuation */
+.prop{ color: #80cbc4; } /* property */
+
+/* ── File path label ── */
+.file-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-bottom: none;
+  border-radius: 6px 6px 0 0;
+  padding: 5px 12px;
+  color: var(--ink-3);
+  margin-bottom: 0;
+  margin-top: 20px;
+}
+.file-label + pre {
+  margin-top: 0;
+  border-radius: 0 var(--radius) var(--radius) var(--radius);
+}
+
+/* ── Callouts ── */
+.callout {
+  display: flex;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  margin: 20px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.callout-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.callout-body strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 13px;
+}
+.callout-info  { background: var(--q2-soft); border-left: 3px solid var(--q2); }
+.callout-warn  { background: var(--q3-soft); border-left: 3px solid var(--q3); }
+.callout-tip   { background: var(--q4-soft); border-left: 3px solid var(--q4); }
+.callout-danger{ background: var(--q1-soft); border-left: 3px solid var(--q1); }
+
+/* ── Tables ── */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  margin: 20px 0;
+}
+thead th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-4);
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--line-2);
+  background: var(--bg-2);
+}
+tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-2);
+  vertical-align: top;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: var(--bg-2); }
+td code { font-size: 11.5px; }
+
+/* ── Badge ── */
+.badge {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+.badge-get    { background: var(--q4-soft); color: var(--q4); }
+.badge-post   { background: var(--q2-soft); color: var(--q2); }
+.badge-put    { background: var(--q3-soft); color: #7c4a00; }
+.badge-patch  { background: #f0e6ff; color: #6b21a8; }
+.badge-delete { background: var(--q1-soft); color: var(--q1); }
+.badge-auth   { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-size: 10px; }
+
+/* ── Endpoint rows ── */
+.endpoint-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+.endpoint-row:last-child { border-bottom: none; }
+.endpoint-path {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  flex: 1;
+}
+.endpoint-desc {
+  font-size: 13px;
+  color: var(--ink-3);
+  flex: 2;
+}
+
+/* ── Schema field table ── */
+.schema-table thead th:first-child { width: 20%; }
+.schema-table thead th:nth-child(2) { width: 18%; }
+.schema-table thead th:nth-child(3) { width: 12%; }
+
+/* ── Quadrant badge ── */
+.qbadge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-family: var(--mono);
+}
+.q1b { background: var(--q1-soft); color: var(--q1); }
+.q2b { background: var(--q2-soft); color: var(--q2); }
+.q3b { background: var(--q3-soft); color: #7c4a00; }
+.q4b { background: var(--q4-soft); color: var(--q4); }
+
+/* ── Divider ── */
+hr {
+  border: none;
+  border-top: 1px solid var(--line);
+  margin: 40px 0;
+}
+
+/* ── Flow diagram ── */
+.flow {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex-wrap: wrap;
+  margin: 20px 0;
+  font-size: 13px;
+}
+.flow-step {
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+  white-space: nowrap;
+}
+.flow-arrow {
+  padding: 0 10px;
+  color: var(--ink-4);
+  font-size: 16px;
+}
+
+/* ── Stack grid ── */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.tech-card {
+  background: var(--bg-2);
+  border: 1px solid var(--line-2);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.tech-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tech-card-ver {
+  font-size: 10px;
+  font-family: var(--mono);
+  background: var(--bg-3);
+  border: 1px solid var(--line-2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: var(--ink-4);
+  font-weight: 400;
+}
+.tech-card p {
+  font-size: 13px;
+  color: var(--ink-3);
+  margin: 0;
+}
+
+/* ── Print ── */
+@media print {
+  body { font-size: 11pt; background: white; }
+  .page-wrap { max-width: 100%; padding: 0 20px; }
+  .cover { min-height: auto; padding: 40px 0 30px; page-break-after: always; }
+  .toc { page-break-after: always; }
+  .section { page-break-inside: avoid; }
+  .subsection { page-break-inside: avoid; }
+  pre { white-space: pre-wrap; word-break: break-word; }
+  a { color: inherit; text-decoration: none; }
+  .callout { page-break-inside: avoid; }
+  table { page-break-inside: avoid; }
+
+  @page {
+    margin: 20mm 18mm 22mm;
+    size: A4;
+    @bottom-center {
+      content: "TaskMatrix Technical Manual · " counter(page);
+      font-size: 9pt;
+      color: #999;
+    }
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════ COVER -->
+<div class="cover">
+  <div class="cover-grid">
+    <span style="background:#e23b3b;"></span>
+    <span style="background:#2f5fff;"></span>
+    <span style="background:#e89414;"></span>
+    <span style="background:#208a5b;"></span>
+  </div>
+  <div class="cover-eyebrow">Internal Documentation · v1.0</div>
+  <h1>TaskMatrix<br>Technical Manual</h1>
+  <p class="cover-sub">A comprehensive reference for engineering team members covering architecture, code structure, API contracts, data models, authentication flows, and key development patterns.</p>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Stack</span>
+      <span class="cover-meta-value">MERN · React 18 · Vite</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Document date</span>
+      <span class="cover-meta-value">May 2026</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Audience</span>
+      <span class="cover-meta-value">Engineering team</span>
+    </div>
+    <div class="cover-meta-item">
+      <span class="cover-meta-label">Status</span>
+      <span class="cover-meta-value">Living document</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════ PAGE WRAP -->
+<div class="page-wrap">
+
+<!-- ══ TABLE OF CONTENTS ══ -->
+<nav class="toc" id="toc">
+  <h2>Table of Contents</h2>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s1"><span class="toc-num">01</span>Introduction &amp; Architecture Overview</a>
+    <div class="toc-sub">
+      <a href="#s1-purpose">Purpose &amp; Scope</a>
+      <a href="#s1-eisenhower">The Eisenhower Matrix</a>
+      <a href="#s1-arch">System Architecture</a>
+      <a href="#s1-structure">Repository Structure</a>
+      <a href="#s1-env">Environment &amp; Configuration</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s2"><span class="toc-num">02</span>Technology Stack</a>
+    <div class="toc-sub">
+      <a href="#s2-node">Node.js &amp; Express.js</a>
+      <a href="#s2-mongo">MongoDB &amp; Mongoose ODM</a>
+      <a href="#s2-jwt">JSON Web Tokens (JWT)</a>
+      <a href="#s2-bcrypt">bcryptjs Password Hashing</a>
+      <a href="#s2-react">React 18 &amp; JSX</a>
+      <a href="#s2-vite">Vite Build Tool</a>
+      <a href="#s2-router">React Router v6</a>
+      <a href="#s2-axios">Axios HTTP Client</a>
+      <a href="#s2-dnd">@hello-pangea/dnd Drag-and-Drop</a>
+      <a href="#s2-context">Context API</a>
+      <a href="#s2-css">CSS Custom Properties &amp; Dark Mode</a>
+      <a href="#s2-ai">AI Engine</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s3"><span class="toc-num">03</span>Backend Code Explained</a>
+    <div class="toc-sub">
+      <a href="#s3-entry">server.js — Entry Point</a>
+      <a href="#s3-db">config/db.js — Database Connection</a>
+      <a href="#s3-models">Models</a>
+      <a href="#s3-controllers">Controllers</a>
+      <a href="#s3-routes">Routes</a>
+      <a href="#s3-middleware">Middleware</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s4"><span class="toc-num">04</span>Frontend Code Explained</a>
+    <div class="toc-sub">
+      <a href="#s4-entry">main.jsx &amp; App.jsx</a>
+      <a href="#s4-contexts">Contexts</a>
+      <a href="#s4-services">Services</a>
+      <a href="#s4-pages">Pages</a>
+      <a href="#s4-components">Components</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s5"><span class="toc-num">05</span>API Reference</a>
+    <div class="toc-sub">
+      <a href="#s5-auth">Authentication Endpoints</a>
+      <a href="#s5-tasks">Task Endpoints</a>
+      <a href="#s5-ai">AI Endpoints</a>
+      <a href="#s5-health">Health Check</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s6"><span class="toc-num">06</span>Data Models Reference</a>
+    <div class="toc-sub">
+      <a href="#s6-user">User Model</a>
+      <a href="#s6-task">Task Model</a>
+      <a href="#s6-subdocs">Subdocuments</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s7"><span class="toc-num">07</span>Authentication Flow</a>
+    <div class="toc-sub">
+      <a href="#s7-register">Registration</a>
+      <a href="#s7-login">Login &amp; Lockout</a>
+      <a href="#s7-jwt-flow">JWT Lifecycle</a>
+      <a href="#s7-reset">Password Reset</a>
+      <a href="#s7-guest">Guest Sessions</a>
+    </div>
+  </div>
+
+  <div class="toc-section">
+    <a class="toc-section-link" href="#s8"><span class="toc-num">08</span>Key Patterns &amp; Conventions</a>
+    <div class="toc-sub">
+      <a href="#s8-ownership">Data Ownership &amp; Isolation</a>
+      <a href="#s8-softdelete">Soft-Delete Pattern</a>
+      <a href="#s8-optimistic">Optimistic UI Updates</a>
+      <a href="#s8-cache">AI Response Caching</a>
+      <a href="#s8-activity">Activity Log Pattern</a>
+      <a href="#s8-errors">Error Handling</a>
+      <a href="#s8-naming">Naming Conventions</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 1 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s1">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2>Introduction &amp; Architecture Overview</h2>
+  </div>
+
+  <div class="subsection" id="s1-purpose">
+    <h3>1.1 Purpose &amp; Scope</h3>
+    <p>TaskMatrix is a full-stack task management web application built on the MERN stack (MongoDB, Express.js, React, Node.js). Its defining feature is the <strong>Eisenhower Matrix</strong> — a four-quadrant prioritisation system that categorises tasks by urgency and importance, guiding users toward deliberate, effective decision-making about their workload.</p>
+    <p>This manual is the single authoritative technical reference for the engineering team. It covers every file in the repository: what the file does, why it exists in its current form, how it interacts with other parts of the system, and the key code patterns it embodies. Use it when onboarding, debugging, extending features, or planning refactors.</p>
+    <p>The document reflects the codebase as it existed at the time of writing (May 2026). All code snippets are extracted verbatim from the source files.</p>
+  </div>
+
+  <div class="subsection" id="s1-eisenhower">
+    <h3>1.2 The Eisenhower Matrix</h3>
+    <p>The Eisenhower Matrix (also known as the Urgent-Important Matrix) divides tasks into four quadrants based on two axes:</p>
+    <table>
+      <thead>
+        <tr><th>Quadrant</th><th>ID</th><th>Urgency</th><th>Importance</th><th>Strategy</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="qbadge q1b">Q1 — Do First</span></td><td><code>q1</code></td><td>Urgent</td><td>Important</td><td>Handle immediately</td></tr>
+        <tr><td><span class="qbadge q2b">Q2 — Schedule</span></td><td><code>q2</code></td><td>Not urgent</td><td>Important</td><td>Block dedicated time</td></tr>
+        <tr><td><span class="qbadge q3b">Q3 — Delegate</span></td><td><code>q3</code></td><td>Urgent</td><td>Not important</td><td>Delegate if possible</td></tr>
+        <tr><td><span class="qbadge q4b">Q4 — Eliminate</span></td><td><code>q4</code></td><td>Not urgent</td><td>Not important</td><td>Drop or defer</td></tr>
+      </tbody>
+    </table>
+    <p>In TaskMatrix, tasks are created in or dragged between quadrants. The AI engine further assists by automatically suggesting the correct quadrant based on keyword analysis of the task title and notes.</p>
+  </div>
+
+  <div class="subsection" id="s1-arch">
+    <h3>1.3 System Architecture</h3>
+    <p>TaskMatrix follows a classic three-tier architecture: a browser-based React SPA as the presentation layer, a Node.js/Express REST API as the application layer, and MongoDB as the data layer.</p>
+
+    <div class="flow" style="margin: 28px 0; flex-direction: column; align-items: stretch; gap: 0;">
+      <div style="display:flex; align-items:center; gap:0; flex-wrap:wrap;">
+        <div class="flow-step" style="background:var(--q2-soft); border-color:var(--q2); color:var(--q2); flex:1; text-align:center;">Browser (React SPA)<br><small style="font-weight:400; font-size:11px;">Vite dev server · port 5173</small></div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-step" style="flex:1; text-align:center;">Vite proxy <code>/api</code><br><small style="font-weight:400; font-size:11px;">dev only</small></div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-step" style="background:var(--q3-soft); border-color:var(--q3); flex:1; text-align:center;">Express REST API<br><small style="font-weight:400; font-size:11px;">Node.js · port 5000</small></div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-step" style="background:var(--q4-soft); border-color:var(--q4); flex:1; text-align:center;">MongoDB<br><small style="font-weight:400; font-size:11px;">localhost:27017/taskmatrix</small></div>
+      </div>
+    </div>
+
+    <p>In development, Vite's built-in proxy rewrites all requests matching <code>/api/*</code> to <code>http://localhost:5000</code>, which eliminates CORS issues between the dev servers. In production, the compiled React bundle would be served from a CDN or the same origin as the API.</p>
+
+    <p>Key architectural decisions:</p>
+    <ul>
+      <li><strong>Stateless JWT authentication</strong> — the server issues a signed token on login; subsequent requests carry it in the <code>Authorization</code> header. No session store is needed.</li>
+      <li><strong>Owner-scoped data</strong> — every task document carries an <code>owner</code> field (ObjectId ref to User). All queries filter by <code>owner: req.user._id</code>, ensuring strict per-user data isolation.</li>
+      <li><strong>Soft-delete pattern</strong> — deleted tasks are marked <code>deleted: true</code> rather than physically removed, enabling a Trash page with restore and permanent-delete actions.</li>
+      <li><strong>Context API state management</strong> — global state (auth + tasks) is managed via two React contexts backed by the API, with a local-state fallback for guest users.</li>
+      <li><strong>AI as a layer, not a dependency</strong> — the AI engine is isolated to <code>aiController.js</code> and uses an in-memory keyword classifier. It can be swapped for a live Claude/OpenAI call without touching any other file.</li>
+    </ul>
+  </div>
+
+  <div class="subsection" id="s1-structure">
+    <h3>1.4 Repository Structure</h3>
+    <p>The repository is a monorepo with two top-level packages: <code>server/</code> and <code>client/</code>, each with its own <code>package.json</code>.</p>
+    <pre><code>TaskMatrix/
+├── server/
+│   ├── server.js              <span class="cm"># Express entry point</span>
+│   ├── .env                   <span class="cm"># PORT, JWT_SECRET, MONGO_URI</span>
+│   ├── config/
+│   │   └── db.js              <span class="cm"># MongoDB connection</span>
+│   ├── models/
+│   │   ├── User.js            <span class="cm"># Mongoose User schema</span>
+│   │   └── Task.js            <span class="cm"># Mongoose Task schema</span>
+│   ├── controllers/
+│   │   ├── authController.js  <span class="cm"># register, login, forgot/reset password</span>
+│   │   ├── taskController.js  <span class="cm"># full task CRUD + comments + reorder</span>
+│   │   └── aiController.js    <span class="cm"># AI suggestion engine + cache</span>
+│   ├── routes/
+│   │   ├── auth.js            <span class="cm"># /api/auth/* routes</span>
+│   │   ├── tasks.js           <span class="cm"># /api/tasks/* routes</span>
+│   │   └── ai.js              <span class="cm"># /api/ai/* routes</span>
+│   └── middleware/
+│       ├── auth.js            <span class="cm"># protect middleware (JWT verify)</span>
+│       └── errorHandler.js    <span class="cm"># global error handler</span>
+└── client/
+    ├── vite.config.js         <span class="cm"># Vite config + /api proxy</span>
+    └── src/
+        ├── main.jsx           <span class="cm"># ReactDOM root + dark mode init</span>
+        ├── App.jsx            <span class="cm"># Route tree + RequireAuth guard</span>
+        ├── index.css          <span class="cm"># Global CSS + design tokens</span>
+        ├── context/
+        │   ├── AuthContext.jsx
+        │   └── TaskContext.jsx
+        ├── services/
+        │   ├── api.js         <span class="cm"># Axios instance + API helper objects</span>
+        │   └── aiService.js   <span class="cm"># AI API wrappers</span>
+        ├── pages/             <span class="cm"># One file per route</span>
+        └── components/
+            ├── layout/        <span class="cm"># Sidebar, Topbar</span>
+            ├── board/         <span class="cm"># QuadrantBoard, Quadrant, TaskCard</span>
+            ├── tasks/         <span class="cm"># TaskModal</span>
+            └── ui/            <span class="cm"># Icon, Brand, Avatar, Toast, Toggle</span>
+</code></pre>
+  </div>
+
+  <div class="subsection" id="s1-env">
+    <h3>1.5 Environment &amp; Configuration</h3>
+    <p>Server configuration lives in <code>server/.env</code>. This file is never committed to version control. A template should exist at <code>server/.env.example</code>.</p>
+    <table>
+      <thead><tr><th>Variable</th><th>Example value</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>PORT</code></td><td><code>5000</code></td><td>HTTP port the Express server listens on</td></tr>
+        <tr><td><code>MONGO_URI</code></td><td><code>mongodb://localhost:27017/taskmatrix</code></td><td>MongoDB connection string</td></tr>
+        <tr><td><code>JWT_SECRET</code></td><td><code>a-long-random-secret</code></td><td>HMAC secret for signing JWT tokens. Must be a high-entropy string in production.</td></tr>
+        <tr><td><code>CLIENT_URL</code></td><td><code>http://localhost:5173</code></td><td>Allowed CORS origin. Defaults to <code>http://localhost:5173</code> if unset.</td></tr>
+        <tr><td><code>NODE_ENV</code></td><td><code>development</code></td><td>When set to <code>development</code>, stack traces are included in error responses.</td></tr>
+      </tbody>
+    </table>
+    <div class="callout callout-danger">
+      <span class="callout-icon">⚠</span>
+      <div class="callout-body"><strong>Security note</strong> The fallback <code>JWT_SECRET</code> value (<code>'tm_dev_secret'</code>) embedded in the source must never be used in production. Set a strong random secret via the environment variable.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 2 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s2">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2>Technology Stack</h2>
+  </div>
+
+  <p>This section explains every major library and technology used in TaskMatrix — what it is, why it was chosen, and how it is used in the codebase.</p>
+
+  <div class="subsection" id="s2-node">
+    <h3>2.1 Node.js &amp; Express.js</h3>
+    <p><strong>Node.js</strong> is a JavaScript runtime built on V8 that executes JavaScript outside the browser. It uses an event-driven, non-blocking I/O model, making it well-suited for I/O-heavy web servers that handle many concurrent connections without thread contention.</p>
+    <p><strong>Express.js</strong> is the de facto standard web framework for Node.js. It provides a thin layer of routing, middleware composition, and request/response helpers without imposing a heavy opinionated structure. In TaskMatrix, Express handles:</p>
+    <ul>
+      <li>CORS headers (via the <code>cors</code> middleware package)</li>
+      <li>JSON body parsing (<code>express.json()</code>)</li>
+      <li>Route mounting for three API namespaces: <code>/api/auth</code>, <code>/api/tasks</code>, <code>/api/ai</code></li>
+      <li>A global error handler registered last in the middleware chain</li>
+    </ul>
+    <p>Express middleware functions follow the signature <code>(req, res, next)</code>. When a middleware calls <code>next()</code>, Express passes control to the next function in the chain. Calling <code>next(err)</code> skips to the error handler. This pattern is used by the <code>protect</code> auth middleware to gate protected routes.</p>
+  </div>
+
+  <div class="subsection" id="s2-mongo">
+    <h3>2.2 MongoDB &amp; Mongoose ODM</h3>
+    <p><strong>MongoDB</strong> is a document-oriented NoSQL database. Data is stored as BSON (binary JSON) documents grouped into collections. Unlike relational databases, there is no fixed schema enforced at the database level — schema validation is handled by Mongoose in the application layer.</p>
+    <p>TaskMatrix uses MongoDB for several reasons: its document model maps naturally to JSON API payloads, it handles arrays of subdocuments (comments, activity logs) gracefully without join tables, and it integrates seamlessly with Mongoose's JavaScript-native API.</p>
+    <p><strong>Mongoose</strong> is an Object Document Mapper (ODM) that adds:</p>
+    <ul>
+      <li><strong>Schemas</strong> — define field types, defaults, validators, and indexes in JavaScript</li>
+      <li><strong>Models</strong> — provide a query API (<code>Model.find()</code>, <code>Model.findOneAndUpdate()</code>, etc.)</li>
+      <li><strong>Middleware (hooks)</strong> — <code>pre('save')</code> and <code>post('save')</code> hooks run before/after document persistence. TaskMatrix uses a <code>pre('save')</code> hook on User to hash passwords.</li>
+      <li><strong>Virtuals</strong> — computed properties not persisted to the database. The <code>isLocked</code> virtual on User is an example.</li>
+      <li><strong>Instance methods</strong> — custom methods on document instances. <code>user.comparePassword(plain)</code> uses bcrypt to verify a plaintext password against the stored hash.</li>
+    </ul>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ</span>
+      <div class="callout-body"><strong>select: false</strong> Several fields on the User schema carry <code>select: false</code>. This means Mongoose omits them from query results by default. To retrieve them, a query must explicitly opt in with <code>.select('+password')</code>. This is used for <code>password</code>, <code>passwordResetToken</code>, and <code>passwordResetExpires</code>.</div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s2-jwt">
+    <h3>2.3 JSON Web Tokens (JWT)</h3>
+    <p>JWT is an open standard (RFC 7519) for transmitting claims between parties as a compact, URL-safe token. A JWT consists of three Base64URL-encoded sections separated by dots: <code>header.payload.signature</code>.</p>
+    <ul>
+      <li><strong>Header</strong> — algorithm and token type (<code>{ "alg": "HS256", "typ": "JWT" }</code>)</li>
+      <li><strong>Payload</strong> — claims. TaskMatrix stores <code>{ "id": "&lt;user ObjectId&gt;" }</code></li>
+      <li><strong>Signature</strong> — HMAC-SHA256 of header + payload using <code>JWT_SECRET</code></li>
+    </ul>
+    <p>On successful login or registration, the server calls <code>signToken(user._id)</code> which signs a token with a 30-day expiry. The client stores this in <code>localStorage</code> under the key <code>tm_token</code>. Every subsequent API request attaches it as <code>Authorization: Bearer &lt;token&gt;</code>. The <code>protect</code> middleware verifies the signature and expiry, then loads the user from the database and attaches it to <code>req.user</code>.</p>
+    <p>JWTs are stateless — the server does not store tokens. This means tokens cannot be individually revoked before expiry. For a production hardening roadmap, consider maintaining a token denylist in Redis or switching to short-lived access tokens with refresh tokens.</p>
+  </div>
+
+  <div class="subsection" id="s2-bcrypt">
+    <h3>2.4 bcryptjs Password Hashing</h3>
+    <p>Passwords must never be stored in plaintext. <strong>bcrypt</strong> is an adaptive hashing function specifically designed for passwords. It incorporates a salt (random data mixed in before hashing) and a cost factor (work factor) that controls how computationally expensive each hash computation is.</p>
+    <p>TaskMatrix uses <code>bcryptjs</code>, a pure-JavaScript implementation of bcrypt that runs without native bindings. The cost factor is set to <strong>12</strong>, which produces hashes that take roughly 0.3–1 second to compute on modern hardware — fast enough for user-facing login but slow enough to make brute-force attacks impractical.</p>
+    <p>The hashing occurs in the Mongoose <code>pre('save')</code> hook on the User model. It only runs when the <code>password</code> field is actually modified (<code>this.isModified('password')</code>), which prevents re-hashing on unrelated profile updates. Password verification uses <code>bcrypt.compare(plaintext, hash)</code>, which is timing-safe.</p>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠</span>
+      <div class="callout-body"><strong>findByIdAndUpdate bypasses hooks</strong> The lockout counter resets in <code>authController.js</code> use <code>User.findByIdAndUpdate()</code> rather than <code>user.save()</code> intentionally — this bypasses the pre-save hook and avoids re-hashing the already-hashed password.</div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s2-react">
+    <h3>2.5 React 18 &amp; JSX</h3>
+    <p><strong>React</strong> is a declarative UI library that renders component trees to the DOM. In React 18, the root is created with <code>ReactDOM.createRoot()</code>, which enables concurrent features including automatic batching of state updates.</p>
+    <p><strong>JSX</strong> is a syntax extension that allows HTML-like markup inside JavaScript. Vite's React plugin (<code>@vitejs/plugin-react</code>) transforms JSX to <code>React.createElement()</code> calls at build time using Babel or SWC.</p>
+    <p>Key React patterns used throughout TaskMatrix:</p>
+    <ul>
+      <li><strong>Functional components</strong> — all components are functions, not classes</li>
+      <li><strong>useState / useEffect / useCallback / useRef</strong> — the standard hooks for state, side effects, memoised callbacks, and DOM refs</li>
+      <li><strong>useContext</strong> — accesses AuthContext and TaskContext without prop drilling</li>
+      <li><strong>Controlled inputs</strong> — form fields bind their value to state and update via <code>onChange</code></li>
+      <li><strong>Conditional rendering</strong> — JSX uses ternary (<code>? :</code>) and short-circuit (<code>&amp;&amp;</code>) expressions to show/hide UI</li>
+      <li><strong>StrictMode</strong> — <code>main.jsx</code> wraps the app in <code>&lt;React.StrictMode&gt;</code>, which double-invokes effects and renders in development to surface side-effect bugs</li>
+    </ul>
+  </div>
+
+  <div class="subsection" id="s2-vite">
+    <h3>2.6 Vite Build Tool</h3>
+    <p><strong>Vite</strong> is a next-generation front-end build tool that uses native ES modules in development (no bundling step) and Rollup for production builds. This results in near-instant cold starts and fast HMR (Hot Module Replacement).</p>
+    <p>In TaskMatrix, <code>client/vite.config.js</code> configures two things:</p>
+    <ol>
+      <li>The <code>@vitejs/plugin-react</code> plugin, which enables JSX transformation and React Fast Refresh</li>
+      <li>A dev-server proxy: all requests to <code>/api/*</code> are forwarded to <code>http://localhost:5000</code>. This means the React app can call <code>/api/tasks</code> without CORS issues during development — both origins appear the same to the browser.</li>
+    </ol>
+    <div class="file-label">client/vite.config.js</div>
+    <pre><code><span class="kw">export default</span> <span class="fn">defineConfig</span>({
+  plugins: [<span class="fn">react</span>()],
+  server: {
+    port: <span class="num">5173</span>,
+    proxy: {
+      <span class="str">'/api'</span>: {
+        target: <span class="str">'http://localhost:5000'</span>,
+        changeOrigin: <span class="kw">true</span>,
+      },
+    },
+  },
+});</code></pre>
+    <p>The <code>changeOrigin: true</code> option rewrites the <code>Host</code> header of proxied requests to match the target, which prevents some server-side host validation rejections.</p>
+  </div>
+
+  <div class="subsection" id="s2-router">
+    <h3>2.7 React Router v6</h3>
+    <p>React Router v6 provides declarative client-side routing. The app uses <code>BrowserRouter</code> (HTML5 history API), <code>Routes</code>, and <code>Route</code> elements to define the route tree in <code>App.jsx</code>.</p>
+    <p>Key v6 features used:</p>
+    <ul>
+      <li><strong><code>&lt;Navigate&gt;</code></strong> — declarative redirects. Used for the <code>/</code> and <code>*</code> catch-all routes (both redirect to <code>/login</code>).</li>
+      <li><strong><code>useNavigate()</code></strong> — programmatic navigation hook. Used in Sidebar, LoginPage, and WelcomePage to navigate after actions.</li>
+      <li><strong><code>useLocation()</code></strong> — returns the current location object, including state. Used by <code>RequireAuth</code> to remember where the user was trying to go before being redirected to login.</li>
+      <li><strong>Nested route guards</strong> — the custom <code>RequireAuth</code> wrapper component renders a spinner while loading, redirects to <code>/login</code> if unauthenticated, or renders children if authenticated.</li>
+    </ul>
+  </div>
+
+  <div class="subsection" id="s2-axios">
+    <h3>2.8 Axios HTTP Client</h3>
+    <p><strong>Axios</strong> is a promise-based HTTP client for the browser and Node.js. It provides a cleaner API than <code>fetch</code>, automatic JSON serialisation/deserialisation, and interceptors.</p>
+    <p>TaskMatrix creates a single Axios instance in <code>client/src/services/api.js</code> with <code>baseURL: '/api'</code>. A request interceptor runs before every outgoing request to attach the JWT token:</p>
+    <div class="file-label">client/src/services/api.js — interceptor</div>
+    <pre><code>api.interceptors.request.<span class="fn">use</span>((config) => {
+  <span class="kw">const</span> token = localStorage.<span class="fn">getItem</span>(<span class="str">'tm_token'</span>);
+  <span class="kw">if</span> (token) config.headers.Authorization = <span class="str">`Bearer <span class="op">${</span>token<span class="op">}</span>`</span>;
+  <span class="kw">return</span> config;
+});</code></pre>
+    <p>All API calls chain <code>.then(r =&gt; r.data)</code> to unwrap the Axios response envelope, so callers receive the raw server response body. The helper objects (<code>authApi</code>, <code>taskApi</code>, <code>aiApi</code>, <code>authApiExtra</code>) group related calls and serve as an interface boundary — if the API URL structure changes, only <code>api.js</code> needs updating.</p>
+  </div>
+
+  <div class="subsection" id="s2-dnd">
+    <h3>2.9 @hello-pangea/dnd Drag-and-Drop</h3>
+    <p><code>@hello-pangea/dnd</code> is an actively maintained fork of the widely-used <code>react-beautiful-dnd</code> library. It provides accessible, physics-accurate drag-and-drop for lists and boards.</p>
+    <p>Three components from this library are used:</p>
+    <ul>
+      <li><strong><code>DragDropContext</code></strong> — wraps the entire board. Its <code>onDragEnd</code> callback fires when the user releases a drag. It receives a <code>result</code> object with <code>source</code> (origin droppable + index) and <code>destination</code> (target droppable + index).</li>
+      <li><strong><code>Droppable</code></strong> — marks a region as a valid drop target. Each quadrant column is a Droppable with <code>droppableId</code> set to the quadrant ID (<code>'q1'</code>, <code>'q2'</code>, etc.).</li>
+      <li><strong><code>Draggable</code></strong> — makes each task card draggable. Requires a unique <code>draggableId</code> (the task <code>_id</code>) and an <code>index</code>.</li>
+    </ul>
+    <p>When a drag ends, <code>QuadrantBoard.onDragEnd</code> calls <code>moveTask(draggableId, destination.droppableId, destination.index)</code> on the TaskContext. The context immediately updates local state (optimistic update) and then fires a <code>PUT /api/tasks/:id</code> call to persist the new quadrant and order.</p>
+  </div>
+
+  <div class="subsection" id="s2-context">
+    <h3>2.10 Context API</h3>
+    <p>React's built-in Context API provides a mechanism for sharing state across the component tree without passing props through every intermediate level (prop drilling). TaskMatrix uses two contexts:</p>
+    <ul>
+      <li><strong>AuthContext</strong> — holds the current user object, the loading flag, and action functions: <code>login</code>, <code>register</code>, <code>loginAsGuest</code>, <code>logout</code>, <code>updateUser</code>.</li>
+      <li><strong>TaskContext</strong> — holds the tasks array, the trash array, loading state, and all mutation functions: <code>createTask</code>, <code>updateTask</code>, <code>deleteTask</code>, <code>restoreTask</code>, <code>permanentDelete</code>, <code>toggleComplete</code>, <code>addComment</code>, <code>moveTask</code>.</li>
+    </ul>
+    <p>Both contexts export a custom hook (<code>useAuth</code>, <code>useTaskContext</code>) that throw an error if called outside their provider, which catches configuration mistakes early.</p>
+    <p>The provider hierarchy in <code>App.jsx</code> is: <code>BrowserRouter &gt; AuthProvider &gt; TaskProvider &gt; Routes</code>. TaskProvider wraps inside AuthProvider because TaskContext depends on <code>useAuth()</code> to know whether to load from the API or operate in guest mode.</p>
+  </div>
+
+  <div class="subsection" id="s2-css">
+    <h3>2.11 CSS Custom Properties &amp; Dark Mode</h3>
+    <p>TaskMatrix uses a comprehensive CSS custom property (CSS variable) system defined in <code>client/src/index.css</code>. All colour decisions, spacing radii, shadows, and typography values are expressed as variables, making the design system easy to audit and extend.</p>
+    <p>Dark mode is implemented by toggling the class <code>dark-mode</code> on the <code>&lt;html&gt;</code> element. A selector <code>html.dark-mode</code> then overrides the root-level variables:</p>
+    <pre><code><span class="prop">:root</span> {
+  --bg: <span class="num">#fafaf9</span>;   <span class="cm">/* light background */</span>
+  --ink: <span class="num">#0a0a0a</span>;  <span class="cm">/* light foreground */</span>
+}
+<span class="prop">html.dark-mode</span> {
+  --bg: <span class="num">#0f0f0e</span>;
+  --ink: <span class="num">#f0ede8</span>;
+  <span class="cm">/* … other overrides … */</span>
+}</code></pre>
+    <p>Because all component styles reference variables rather than hard-coded values, the entire UI repaints automatically when the class is toggled. The dark mode preference is persisted to <code>localStorage</code> under the key <code>tm-dark-mode</code> and applied in <code>main.jsx</code> before the first React render, eliminating the flash of wrong theme.</p>
+  </div>
+
+  <div class="subsection" id="s2-ai">
+    <h3>2.12 AI Engine</h3>
+    <p>The AI engine in <code>server/controllers/aiController.js</code> is a deterministic keyword classifier. It is deliberately designed to be swappable — the comment at the top of the file says <em>"swap suggestQuadrant / suggestSubtasks with real Claude/OpenAI API calls by updating only these functions."</em></p>
+    <p>The classifier maintains four keyword lists:</p>
+    <ul>
+      <li><code>URGENCY_KW</code> — words implying time pressure (<em>tonight, asap, deadline, urgent, …</em>)</li>
+      <li><code>IMPORTANCE_KW</code> — words implying goal alignment (<em>exam, thesis, career, interview, …</em>)</li>
+      <li><code>DELEGATE_KW</code> — words implying tasks suited for others (<em>pick up, errand, book, arrange, …</em>)</li>
+      <li><code>ELIMINATE_KW</code> — words implying low value (<em>optional, someday, hobby, browse, …</em>)</li>
+    </ul>
+    <p>Detection logic applies priority rules: Eliminate wins if no urgency/importance signal; delegate wins for urgent+non-important delegatable tasks; Q1 for urgent+important; Q2 for non-urgent+important; Q3 for urgent+non-important; Q4 as default.</p>
+    <p>An in-memory <code>Map</code>-based cache with 5-minute TTL and 500-entry cap prevents redundant computation for repeated queries. Cache keys are formed from the normalised title and notes strings.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 3 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s3">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2>Backend Code Explained</h2>
+  </div>
+
+  <div class="subsection" id="s3-entry">
+    <h3>3.1 server.js — Entry Point</h3>
+    <p>The Express application is bootstrapped in <code>server/server.js</code>. This file is the first module Node.js executes when the server starts.</p>
+    <div class="file-label">server/server.js</div>
+    <pre><code><span class="fn">require</span>(<span class="str">'dotenv'</span>).<span class="fn">config</span>();        <span class="cm">// load .env into process.env</span>
+<span class="kw">const</span> express = <span class="fn">require</span>(<span class="str">'express'</span>);
+<span class="kw">const</span> cors    = <span class="fn">require</span>(<span class="str">'cors'</span>);
+<span class="kw">const</span> connectDB     = <span class="fn">require</span>(<span class="str">'./config/db'</span>);
+<span class="kw">const</span> errorHandler  = <span class="fn">require</span>(<span class="str">'./middleware/errorHandler'</span>);
+
+<span class="kw">const</span> app = <span class="fn">express</span>();
+<span class="fn">connectDB</span>();                          <span class="cm">// establish MongoDB connection</span>
+
+app.<span class="fn">use</span>(<span class="fn">cors</span>({ origin: process.env.CLIENT_URL || <span class="str">'http://localhost:5173'</span> }));
+app.<span class="fn">use</span>(express.<span class="fn">json</span>());             <span class="cm">// parse JSON request bodies</span>
+
+app.<span class="fn">use</span>(<span class="str">'/api/auth'</span>,  <span class="fn">require</span>(<span class="str">'./routes/auth'</span>));
+app.<span class="fn">use</span>(<span class="str">'/api/tasks'</span>, <span class="fn">require</span>(<span class="str">'./routes/tasks'</span>));
+app.<span class="fn">use</span>(<span class="str">'/api/ai'</span>,    <span class="fn">require</span>(<span class="str">'./routes/ai'</span>));
+
+app.<span class="fn">get</span>(<span class="str">'/api/health'</span>, (req, res) => res.<span class="fn">json</span>({ status: <span class="str">'ok'</span> }));
+app.<span class="fn">use</span>(errorHandler); <span class="cm">// must be last — catches errors thrown by routes</span>
+
+<span class="kw">const</span> PORT = process.env.PORT || <span class="num">5000</span>;
+app.<span class="fn">listen</span>(PORT, () => console.<span class="fn">log</span>(<span class="str">`Server running on http://localhost:<span class="op">${</span>PORT<span class="op">}</span>`</span>));</code></pre>
+    <p>Important ordering details:</p>
+    <ul>
+      <li><code>dotenv.config()</code> must be the first call so that all subsequent modules can access <code>process.env</code> variables.</li>
+      <li><code>connectDB()</code> is called before any routes are registered, ensuring the database connection is established (or the process exits) before the server begins accepting traffic.</li>
+      <li><code>app.use(errorHandler)</code> is registered <em>last</em> — Express error-handling middleware (four-argument functions) only intercept errors if they are the last middleware in the chain.</li>
+      <li>The CORS middleware restricts allowed origins. In a multi-environment deployment, <code>CLIENT_URL</code> should be set to the production frontend URL.</li>
+    </ul>
+  </div>
+
+  <div class="subsection" id="s3-db">
+    <h3>3.2 config/db.js — Database Connection</h3>
+    <p>Database connection logic is separated into its own module to keep <code>server.js</code> clean and to make it easy to mock in tests.</p>
+    <div class="file-label">server/config/db.js</div>
+    <pre><code><span class="kw">const</span> mongoose = <span class="fn">require</span>(<span class="str">'mongoose'</span>);
+
+<span class="kw">const</span> connectDB = <span class="kw">async</span> () => {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> conn = <span class="kw">await</span> mongoose.<span class="fn">connect</span>(process.env.MONGO_URI);
+    console.<span class="fn">log</span>(<span class="str">`MongoDB connected: <span class="op">${</span>conn.connection.host<span class="op">}</span>`</span>);
+  } <span class="kw">catch</span> (err) {
+    console.<span class="fn">error</span>(<span class="str">`MongoDB connection error: <span class="op">${</span>err.message<span class="op">}</span>`</span>);
+    process.<span class="fn">exit</span>(<span class="num">1</span>); <span class="cm">// terminate if DB unreachable at startup</span>
+  }
+};</code></pre>
+    <p>The <code>process.exit(1)</code> on connection failure is intentional — a server that cannot reach its database should not begin serving traffic, as all subsequent requests would fail.</p>
+  </div>
+
+  <div class="subsection" id="s3-models">
+    <h3>3.3 Models</h3>
+
+    <h4>User Model — server/models/User.js</h4>
+    <p>The User model defines the structure, validation, and behaviour of user accounts. Key field groups:</p>
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type / Constraints</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>displayName</code></td><td>String, required, trim</td><td>Public display name shown in sidebar and avatar</td></tr>
+        <tr><td><code>email</code></td><td>String, required, unique, lowercase</td><td>Primary identifier; used for login and team invite lookup</td></tr>
+        <tr><td><code>password</code></td><td>String, <code>select:false</code></td><td>Stored as bcrypt hash; omitted from all queries by default</td></tr>
+        <tr><td><code>timezone</code></td><td>String, default <code>'UTC'</code></td><td>IANA timezone string for future date calculations</td></tr>
+        <tr><td><code>avatarInitials</code></td><td>String, default <code>''</code></td><td>Auto-generated from displayName in pre-save hook (up to 2 chars)</td></tr>
+        <tr><td><code>role</code></td><td>Enum: admin/editor/viewer, default editor</td><td>Access control level</td></tr>
+        <tr><td><code>notificationPrefs</code></td><td>Object: inApp (bool), email (bool)</td><td>User preference for notification delivery channels</td></tr>
+        <tr><td><code>aiPrefs</code></td><td>Object: three booleans</td><td>Controls auto-suggest quadrant, title improvements, subtasks</td></tr>
+        <tr><td><code>loginAttempts</code></td><td>Number, default 0</td><td>Counter for failed login attempts; resets on success</td></tr>
+        <tr><td><code>lockUntil</code></td><td>Date</td><td>Timestamp when account lockout expires</td></tr>
+        <tr><td><code>passwordResetToken</code></td><td>String, <code>select:false</code></td><td>SHA-256 hash of the reset token; original token is emailed</td></tr>
+        <tr><td><code>passwordResetExpires</code></td><td>Date, <code>select:false</code></td><td>Expiry time for the reset token (1 hour from generation)</td></tr>
+        <tr><td><code>darkMode</code></td><td>Boolean, default false</td><td>Persisted preference; synced to <code>localStorage</code> on client</td></tr>
+      </tbody>
+    </table>
+
+    <p><strong>Virtual — <code>isLocked</code>:</strong> Computed property that returns <code>true</code> if <code>lockUntil</code> is set and in the future. Virtuals are not sent in JSON responses unless <code>toJSON: { virtuals: true }</code> is added to schema options.</p>
+
+    <p><strong>Pre-save hook:</strong> Runs before any <code>save()</code> call. Guards with <code>this.isModified('password')</code> to only hash when the password field has actually changed. Also auto-generates <code>avatarInitials</code> from the first letter of each word in <code>displayName</code>.</p>
+
+    <p><strong>Instance method — <code>comparePassword</code>:</strong></p>
+    <pre><code>userSchema.methods.<span class="prop">comparePassword</span> = <span class="kw">function</span>(plain) {
+  <span class="kw">return</span> bcrypt.<span class="fn">compare</span>(plain, <span class="kw">this</span>.password);
+};</code></pre>
+    <p>This method is available on any User document instance retrieved with <code>.select('+password')</code>. It returns a Promise resolving to a boolean.</p>
+
+    <h4>Task Model — server/models/Task.js</h4>
+    <p>The Task model is the core data entity. It embeds two subdocument arrays directly on the task document.</p>
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type / Constraints</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>String, required, trim</td><td>The task title shown on cards and in modals</td></tr>
+        <tr><td><code>notes</code></td><td>String, default <code>''</code></td><td>Extended description / body text</td></tr>
+        <tr><td><code>quadrant</code></td><td>Enum: q1/q2/q3/q4, required</td><td>Current Eisenhower quadrant placement</td></tr>
+        <tr><td><code>priority</code></td><td>Enum: High/Medium/Low, default Medium</td><td>Sub-quadrant priority level</td></tr>
+        <tr><td><code>labels</code></td><td>Array of String</td><td>User-defined tags for filtering</td></tr>
+        <tr><td><code>dueDate</code></td><td>Date</td><td>Optional deadline; drives overdue calculations</td></tr>
+        <tr><td><code>dueTime</code></td><td>String, default <code>''</code></td><td>Optional time string displayed alongside due date</td></tr>
+        <tr><td><code>completed</code></td><td>Boolean, default false</td><td>Completion flag; completed tasks are hidden from board view</td></tr>
+        <tr><td><code>completedAt</code></td><td>Date</td><td>Timestamp set when task is marked complete; drives analytics heatmap</td></tr>
+        <tr><td><code>deleted</code></td><td>Boolean, default false</td><td>Soft-delete flag; true = task is in Trash</td></tr>
+        <tr><td><code>deletedAt</code></td><td>Date</td><td>Timestamp of soft deletion</td></tr>
+        <tr><td><code>assignee</code></td><td>String, default <code>'me'</code></td><td>Assignee identifier (currently user ID or <code>'me'</code>)</td></tr>
+        <tr><td><code>aiSuggested</code></td><td>Boolean, default false</td><td>True if the quadrant was set via AI suggestion</td></tr>
+        <tr><td><code>aiConfidence</code></td><td>Enum: High/Medium/Low</td><td>AI confidence level for the suggestion</td></tr>
+        <tr><td><code>aiReason</code></td><td>String</td><td>Human-readable explanation from the AI engine</td></tr>
+        <tr><td><code>order</code></td><td>Number, default 0</td><td>Sort position within a quadrant for drag-and-drop ordering</td></tr>
+        <tr><td><code>owner</code></td><td>ObjectId ref User, indexed</td><td>The user who owns this task; all queries filter by this field</td></tr>
+        <tr><td><code>comments</code></td><td>Array of commentSchema</td><td>Embedded comment thread</td></tr>
+        <tr><td><code>activity</code></td><td>Array of activitySchema</td><td>Audit log of task actions</td></tr>
+      </tbody>
+    </table>
+
+    <p>The <code>owner</code> field has <code>index: true</code> set, creating a MongoDB index on that field. This ensures that queries like <code>Task.find({ owner: req.user._id })</code> run efficiently as the collection grows.</p>
+
+    <p>Subdocuments use <code>{ _id: false }</code> on the activity schema (to avoid unnecessary IDs on log entries) but standard IDs on comment schema (so individual comments can be referenced).</p>
+  </div>
+
+  <div class="subsection" id="s3-controllers">
+    <h3>3.4 Controllers</h3>
+
+    <h4>authController.js</h4>
+    <p>Handles all authentication operations. Each export is an Express route handler (<code>async (req, res) =&gt; {}</code>).</p>
+
+    <p><strong>validatePassword(password)</strong> — enforces the password policy before creating or resetting accounts: minimum 8 characters, at least one uppercase letter, one digit, and one special character. Returns a descriptive error string or <code>null</code> on success.</p>
+
+    <p><strong>register</strong> — validates required fields and password strength, checks for email uniqueness (returns 409 on conflict), creates the user (triggering the pre-save hook to hash the password), and responds with a signed JWT + user object.</p>
+
+    <p><strong>login</strong> — fetches the user with <code>.select('+password +loginAttempts +lockUntil')</code> to opt in to normally-hidden fields, checks the lockout timestamp, compares the password, and either increments the failure counter or resets it on success. The lockout is applied after 5 consecutive failures and lasts 15 minutes.</p>
+
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ</span>
+      <div class="callout-body"><strong>Why findByIdAndUpdate for counters?</strong> After a successful login, the failure counters are cleared using <code>User.findByIdAndUpdate()</code> rather than <code>user.save()</code>. This bypasses all Mongoose middleware, which means the bcrypt pre-save hook does not run and the already-hashed password is not re-hashed.</div>
+    </div>
+
+    <p><strong>getMe</strong> — returns <code>req.user</code> as-is. The <code>protect</code> middleware already loaded the user from the database and attached it to the request object.</p>
+
+    <p><strong>updateMe</strong> — accepts a whitelist of updatable fields (<code>displayName</code>, <code>timezone</code>, <code>notificationPrefs</code>, <code>aiPrefs</code>, <code>darkMode</code>) and applies them with <code>findByIdAndUpdate</code>. Also regenerates <code>avatarInitials</code> if <code>displayName</code> changes.</p>
+
+    <p><strong>forgotPassword</strong> — generates a cryptographically random 32-byte token with <code>crypto.randomBytes(32)</code>, stores its SHA-256 hash on the user document (not the raw token), and sets a 1-hour expiry. The raw token would be sent in an email reset link in production. The response always returns the same success message regardless of whether the email exists, preventing email enumeration attacks.</p>
+
+    <p><strong>resetPassword</strong> — receives the raw token from the client, hashes it, and looks up the user by matching hash + unexpired expiry. If found, sets the new password (triggering the pre-save hash hook via <code>user.save()</code>), clears the reset fields and lockout counters, and returns a new JWT.</p>
+
+    <h4>taskController.js</h4>
+    <p>All task operations are scoped to the authenticated user via <code>owner: req.user._id</code> on every query. This is the primary data isolation mechanism.</p>
+
+    <p><strong>getTasks</strong> — finds all non-deleted tasks for the owner, sorted by quadrant then order then creation date. Returns an array.</p>
+
+    <p><strong>getTrash</strong> — finds all deleted tasks for the owner, sorted by deletion date descending.</p>
+
+    <p><strong>createTask</strong> — spreads the request body and forcibly sets <code>owner</code> to the authenticated user's ID (client cannot override this). Adds an initial activity log entry.</p>
+
+    <p><strong>updateTask</strong> — first fetches the task to check ownership (404 if not found or not owned). Then builds an activity entry, with special handling for quadrant changes: logs the human-readable label names of origin and destination quadrants. Uses <code>$push</code> to append the activity entry atomically.</p>
+
+    <p><strong>softDeleteTask</strong> — sets <code>deleted: true</code> and <code>deletedAt</code> atomically with <code>findOneAndUpdate</code>, also pushing an activity entry. Returns 404 if the task is not found or not owned by the requester.</p>
+
+    <p><strong>restoreTask</strong> — clears <code>deleted</code> and <code>deletedAt</code>, pushes a restore activity entry.</p>
+
+    <p><strong>permanentDelete</strong> — calls <code>findOneAndDelete</code>, which physically removes the document. Ownership is verified in the query predicate.</p>
+
+    <p><strong>toggleComplete</strong> — fetches the task, flips the <code>completed</code> boolean, sets or clears <code>completedAt</code>, pushes an activity entry for either completion or reopening, and saves.</p>
+
+    <p><strong>addComment</strong> — appends a new comment and an activity entry using a single <code>$push</code> on two array fields atomically.</p>
+
+    <p><strong>reorderTasks</strong> — accepts an array of <code>{ id, quadrant, order }</code> objects and runs them as parallel <code>findOneAndUpdate</code> calls. All updates include the ownership predicate for safety. This is called by the drag-and-drop system after a card is dropped.</p>
+
+    <h4>aiController.js</h4>
+    <p>Implements three endpoints. All share the same in-memory cache infrastructure.</p>
+
+    <p><strong>Cache implementation:</strong> A <code>Map</code> called <code>aiCache</code> stores entries keyed by a normalised string of title + notes. Each entry is <code>{ data, ts }</code>. The <code>getCached(key)</code> function checks TTL (5 minutes) and deletes stale entries on access. <code>setCache(key, data)</code> clears the entire map if it exceeds 500 entries, preventing unbounded memory growth.</p>
+
+    <p><strong>suggest</strong> — calls <code>detectQuadrant(title, notes)</code> and <code>suggestTitleImprovement(title)</code>. Introduces a 350ms artificial delay (<code>setTimeout</code>) to simulate async AI API latency, which makes the UI loading state visible during development.</p>
+
+    <p><strong>subtasks</strong> — calls <code>suggestSubtasks(title, notes)</code> which uses keyword matching to produce a context-appropriate 3–4 item checklist (e.g., essay tasks vs. presentation tasks vs. exam tasks).</p>
+
+    <p><strong>misclassify (FR-413)</strong> — compares the <code>currentQuadrant</code> the task is placed in against what <code>detectQuadrant</code> would suggest. Returns an <code>isMisclassified</code> boolean plus the suggested quadrant and explanation. Used by <code>TaskModal</code> to show a warning banner when opening an existing task.</p>
+  </div>
+
+  <div class="subsection" id="s3-routes">
+    <h3>3.5 Routes</h3>
+    <p>Routes are thin wiring layers that connect HTTP method+path combinations to controller functions. They also apply middleware selectively.</p>
+
+    <h4>routes/auth.js</h4>
+    <p>Note that <code>GET /me</code> and <code>PUT /me</code> apply the <code>protect</code> middleware but registration, login, forgot-password, and reset-password do not — they are intentionally public endpoints. The <code>GET /search</code> endpoint is protected (only authenticated users can search for teammates by email) and returns only safe public fields (<code>_id</code>, <code>displayName</code>, <code>email</code>, <code>avatarInitials</code>).</p>
+
+    <h4>routes/tasks.js</h4>
+    <p>All task routes are mounted in <code>server.js</code> under <code>/api/tasks</code> and all share the <code>protect</code> middleware applied at the router level (applied in <code>server.js</code> — note: actually applied per route in routes/tasks.js via the parent router setup). The route ordering matters: <code>GET /trash</code> and <code>POST /reorder</code> must appear before <code>GET /:id</code>-style routes to prevent <code>trash</code> and <code>reorder</code> being interpreted as ID parameters.</p>
+
+    <h4>routes/ai.js</h4>
+    <p>All three AI routes are POST endpoints — they accept <code>title</code> and optionally <code>notes</code> in the request body. The AI routes do not require authentication in the current implementation (no <code>protect</code> middleware on the ai router), though they should be gated in production to prevent abuse.</p>
+  </div>
+
+  <div class="subsection" id="s3-middleware">
+    <h3>3.6 Middleware</h3>
+
+    <h4>middleware/auth.js — protect</h4>
+    <p>The JWT authentication guard. It reads the <code>Authorization</code> header, validates the <code>Bearer</code> prefix, verifies the token, loads the user from the database, and attaches it to <code>req.user</code>. If any step fails (missing header, invalid token, user deleted from DB), it returns 401 immediately without calling <code>next()</code>.</p>
+
+    <div class="file-label">server/middleware/auth.js</div>
+    <pre><code><span class="kw">const</span> protect = <span class="kw">async</span> (req, res, next) => {
+  <span class="kw">const</span> header = req.headers.authorization;
+  <span class="kw">if</span> (!header || !header.<span class="fn">startsWith</span>(<span class="str">'Bearer '</span>))
+    <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ message: <span class="str">'Not authenticated'</span> });
+  <span class="kw">try</span> {
+    <span class="kw">const</span> token   = header.<span class="fn">split</span>(<span class="str">' '</span>)[<span class="num">1</span>];
+    <span class="kw">const</span> decoded = jwt.<span class="fn">verify</span>(token, process.env.JWT_SECRET || <span class="str">'tm_dev_secret'</span>);
+    req.user = <span class="kw">await</span> User.<span class="fn">findById</span>(decoded.id).<span class="fn">select</span>(<span class="str">'-password'</span>);
+    <span class="kw">if</span> (!req.user) <span class="kw">return</span> res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ message: <span class="str">'User not found'</span> });
+    <span class="fn">next</span>();
+  } <span class="kw">catch</span> {
+    res.<span class="fn">status</span>(<span class="num">401</span>).<span class="fn">json</span>({ message: <span class="str">'Invalid token'</span> });
+  }
+};</code></pre>
+
+    <h4>middleware/errorHandler.js — Global Error Handler</h4>
+    <p>A four-argument Express middleware that catches any error forwarded via <code>next(err)</code> from route handlers. Returns the error status code (defaulting to 500) and the error message. In development mode, it also includes the stack trace in the response to aid debugging.</p>
+
+    <div class="file-label">server/middleware/errorHandler.js</div>
+    <pre><code><span class="kw">const</span> errorHandler = (err, req, res, next) => {
+  <span class="kw">const</span> status = err.statusCode || <span class="num">500</span>;
+  res.<span class="fn">status</span>(status).<span class="fn">json</span>({
+    message: err.message || <span class="str">'Internal Server Error'</span>,
+    ...(process.env.NODE_ENV === <span class="str">'development'</span> &amp;&amp; { stack: err.stack }),
+  });
+};</code></pre>
+    <p>Note that most controller functions currently use inline <code>try/catch</code> and call <code>res.status(...).json(...)</code> directly rather than forwarding to this handler via <code>next(err)</code>. This handler therefore primarily catches synchronous throws or middleware errors not wrapped in try/catch.</p>
+  </div>
+</section>
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s4">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2>Frontend Code Explained</h2>
+  </div>
+
+  <div class="subsection" id="s4-entry">
+    <h3>4.1 main.jsx &amp; App.jsx</h3>
+
+    <h4>main.jsx — Application Bootstrap</h4>
+    <p><code>main.jsx</code> is the Vite entry point. It performs three jobs before React renders for the first time:</p>
+    <ol>
+      <li>Imports <code>index.css</code> to establish the global design token stylesheet</li>
+      <li>Reads <code>localStorage.getItem('tm-dark-mode')</code> and adds the <code>dark-mode</code> class to <code>&lt;html&gt;</code> if the preference is set — this prevents a flash of unstyled light theme before React hydrates</li>
+      <li>Calls <code>ReactDOM.createRoot(document.getElementById('root')).render(&lt;App /&gt;)</code> inside <code>React.StrictMode</code></li>
+    </ol>
+
+    <div class="file-label">client/src/main.jsx</div>
+    <pre><code><span class="cm">// Apply dark mode before first render to avoid flash</span>
+<span class="kw">if</span> (localStorage.<span class="fn">getItem</span>(<span class="str">'tm-dark-mode'</span>) === <span class="str">'true'</span>) {
+  document.documentElement.classList.<span class="fn">add</span>(<span class="str">'dark-mode'</span>);
+}
+
+ReactDOM.<span class="fn">createRoot</span>(document.<span class="fn">getElementById</span>(<span class="str">'root'</span>)).<span class="fn">render</span>(
+  <span class="op">&lt;</span><span class="cl">React.StrictMode</span><span class="op">&gt;</span>
+    <span class="op">&lt;</span><span class="cl">App</span> <span class="op">/&gt;</span>
+  <span class="op">&lt;/</span><span class="cl">React.StrictMode</span><span class="op">&gt;</span>
+);</code></pre>
+
+    <h4>App.jsx — Route Tree &amp; Auth Guard</h4>
+    <p><code>App.jsx</code> defines the entire route tree and wraps it with the provider hierarchy. The <code>RequireAuth</code> component is defined inline and guards all authenticated routes.</p>
+    <p><strong>RequireAuth logic:</strong></p>
+    <ol>
+      <li>While <code>loading</code> is true (AuthContext is checking <code>localStorage</code> and calling <code>GET /auth/me</code>), renders a full-screen loading spinner</li>
+      <li>If <code>user</code> is null after loading completes, redirects to <code>/login</code> with the current location saved in <code>state.from</code>, allowing post-login redirect back</li>
+      <li>Otherwise renders <code>children</code></li>
+    </ol>
+    <p>The route structure:</p>
+    <ul>
+      <li><code>/</code> and <code>*</code> — redirect to <code>/login</code></li>
+      <li><code>/login</code> — public, renders <code>LoginPage</code></li>
+      <li><code>/welcome</code> — public, renders post-registration <code>WelcomePage</code></li>
+      <li>All other routes — wrapped in <code>RequireAuth</code></li>
+    </ul>
+  </div>
+
+  <div class="subsection" id="s4-contexts">
+    <h3>4.2 Contexts</h3>
+
+    <h4>AuthContext.jsx</h4>
+    <p>Manages authentication state across the entire application. On mount, it checks for a guest session (<code>tm_guest</code> in localStorage) first, then a real token (<code>tm_token</code>). If a token exists, it calls <code>GET /api/auth/me</code> to validate it and retrieve the current user object.</p>
+
+    <p>All action functions are wrapped in <code>useCallback</code> with empty dependency arrays so they have stable identities and don't cause unnecessary re-renders in child components that depend on them.</p>
+
+    <p><strong>loginAsGuest</strong> — creates a synthetic user object <code>{ _id: 'guest', displayName: 'Guest', isGuest: true }</code> and stores it in <code>localStorage</code> as <code>tm_guest</code>. Guest users get an empty task board with no API calls.</p>
+
+    <p>The context value exposes: <code>{ user, loading, login, register, loginAsGuest, logout, updateUser }</code>.</p>
+
+    <h4>TaskContext.jsx</h4>
+    <p>Manages the tasks array and trash array. Wraps <code>useAuth()</code> to detect whether the current user is real or a guest.</p>
+
+    <p><strong>API vs local mode:</strong> The <code>usingApi</code> boolean determines the mode. It is set to <code>true</code> only when the initial <code>loadTasks()</code> API call succeeds. For guest users or when the API fails, all mutations operate on local React state only, with no persistence.</p>
+
+    <p><strong>loadTasks</strong> — fetches both active tasks and trash simultaneously with <code>Promise.all</code>, minimising round trips. Rebuilds both arrays from the server response.</p>
+
+    <p><strong>deleteTask</strong> — implements an optimistic remove: the task is immediately removed from the <code>tasks</code> array and added to <code>trash</code> in local state, then the API call fires. If the API call fails, state is left inconsistent (no rollback is currently implemented — this is a known limitation).</p>
+
+    <p><strong>moveTask</strong> — updates local state immediately (optimistic) then tries the API call in a fire-and-forget pattern (<code>try { await ... } catch {}</code>). This ensures drag-and-drop feels instant even on slow connections.</p>
+
+    <p>The context value exposes: <code>{ tasks, trash, loading, usingApi, createTask, updateTask, deleteTask, restoreTask, permanentDelete, toggleComplete, addComment, moveTask, reload }</code>.</p>
+  </div>
+
+  <div class="subsection" id="s4-services">
+    <h3>4.3 Services</h3>
+
+    <h4>services/api.js</h4>
+    <p>The Axios instance and all API call wrappers live here. This is the sole place where API paths are written — all components and contexts import from this file.</p>
+    <p>The four exported objects form a clean interface:</p>
+    <ul>
+      <li><strong><code>authApi</code></strong> — <code>register</code>, <code>login</code>, <code>getMe</code>, <code>updateMe</code></li>
+      <li><strong><code>taskApi</code></strong> — <code>getAll</code>, <code>getTrash</code>, <code>create</code>, <code>update</code>, <code>remove</code>, <code>restore</code>, <code>permanentDelete</code>, <code>toggleDone</code>, <code>addComment</code>, <code>reorder</code></li>
+      <li><strong><code>aiApi</code></strong> — <code>suggest</code>, <code>subtasks</code>, <code>misclassify</code></li>
+      <li><strong><code>authApiExtra</code></strong> — <code>forgotPassword</code>, <code>resetPassword</code></li>
+    </ul>
+    <p>All methods return the unwrapped data (<code>.then(r =&gt; r.data)</code>), so callers work directly with the parsed JSON.</p>
+
+    <h4>services/aiService.js</h4>
+    <p>A thin wrapper over <code>aiApi</code> that adds error suppression. All three functions (<code>suggestQuadrant</code>, <code>suggestSubtasks</code>, <code>checkMisclassification</code>) catch errors and return <code>null</code> or an empty array, so the UI degrades gracefully if the AI endpoint is unavailable.</p>
+  </div>
+
+  <div class="subsection" id="s4-pages">
+    <h3>4.4 Pages</h3>
+
+    <h4>LoginPage.jsx</h4>
+    <p>Renders two tabs: <strong>Sign in</strong> and <strong>Create account</strong>. Handles the full authentication form flow including:</p>
+    <ul>
+      <li>Tab switching (no routing — tabs are local state)</li>
+      <li>Password strength meter with a score 0–4 based on character type presence; displayed as coloured bars</li>
+      <li><strong>ForgotPasswordModal</strong> — a two-step inline modal: step 1 requests the user's email and calls <code>POST /auth/forgot-password</code>; step 2 shows fields for the reset token and new password, calling <code>POST /auth/reset-password</code></li>
+      <li>On successful registration, navigates to <code>/welcome</code>; on successful login, navigates to <code>/board</code></li>
+    </ul>
+
+    <h4>BoardPage.jsx</h4>
+    <p>The main application page. Composes <code>Sidebar</code>, <code>Topbar</code>, <code>QuadrantBoard</code>, and an optional <code>TaskModal</code> overlay.</p>
+    <p>State managed by BoardPage:</p>
+    <ul>
+      <li><code>selectedTask</code> / <code>defaultQuadrant</code> — which task (or new-task quadrant) opens the modal</li>
+      <li><code>searchQuery</code> — text typed in the Topbar search bar, passed down to QuadrantBoard</li>
+      <li><code>filters</code> — object with <code>priority</code>, <code>label</code>, <code>assignee</code>, <code>due</code> keys, managed by the slide-in <code>FilterPanel</code></li>
+      <li><code>showFilters</code> — boolean controlling FilterPanel visibility</li>
+    </ul>
+    <p><strong>FilterPanel</strong> is defined inline within <code>BoardPage.jsx</code>. It provides pill buttons for priority and due date, a text input for labels, and a button list for assignees. An "active filter chips" row appears in the Topbar area when any filter is active, showing each applied filter with an × to remove it individually.</p>
+
+    <h4>AnalyticsPage.jsx</h4>
+    <p>Displays four KPI cards and three visualisations derived from the user's real task data:</p>
+    <ul>
+      <li><strong>Completion rate</strong> — percentage of all non-deleted tasks that are completed</li>
+      <li><strong>Completed count</strong> — total completed tasks</li>
+      <li><strong>Active tasks</strong> — non-completed, non-deleted tasks</li>
+      <li><strong>Overdue</strong> — active tasks with a <code>dueDate</code> in the past</li>
+    </ul>
+    <p><strong>14-day bar chart</strong> — groups tasks by day index (0–13) based on <code>createdAt</code> (light grey bars) and <code>completedAt</code> (green bars). Built with pure CSS flexbox — no charting library.</p>
+    <p><strong>Quadrant distribution</strong> — horizontal percentage bars per quadrant, showing what fraction of active tasks sit in each quadrant.</p>
+    <p><strong>Completion heatmap</strong> — a 7-day × 9-hour grid where cell opacity reflects how many tasks were completed at that day-of-week and hour-of-day combination, derived from <code>completedAt</code> timestamps.</p>
+    <p>Also includes a CSV export function that builds a text blob from task data and triggers a download via a programmatically created <code>&lt;a&gt;</code> element.</p>
+
+    <h4>TeamPage.jsx</h4>
+    <p>Allows users to manage a team roster stored in <code>localStorage</code> under the key <code>tm_team_&lt;userId&gt;</code> (via the <code>useTeamMembers</code> custom hook). The owner row (the current user) is always shown at the top and cannot be removed.</p>
+    <p><strong>InviteModal</strong> — validates the entered email by calling <code>GET /api/auth/search?email=</code>. If the user exists in the database, adds them to the local roster with the specified role. Roles are a free-text input with a datalist providing suggestions (Admin, Editor, Viewer).</p>
+
+    <h4>NotificationsPage.jsx</h4>
+    <p>Generates real-time task-based alerts from the current task list. No hardcoded mock data. Shows two categories:</p>
+    <ul>
+      <li>Tasks that are <strong>overdue</strong> (dueDate in the past, not completed)</li>
+      <li>Tasks <strong>due within 24 hours</strong> (dueDate within next 24h, not completed)</li>
+    </ul>
+
+    <h4>JournalPage.jsx</h4>
+    <p>A two-panel personal journal. Entry data is persisted to <code>localStorage</code> under <code>tm_journal_&lt;userId&gt;</code> via the <code>useJournal</code> custom hook. The left panel lists entries (searchable); the right panel is a text editor for the selected entry. Supports create, edit, delete, and text search.</p>
+
+    <h4>SettingsPage.jsx</h4>
+    <p>Three sections: <strong>Profile</strong> (edit displayName, timezone, avatar preview), <strong>Appearance</strong> (dark mode toggle that updates <code>document.documentElement.classList</code> and <code>localStorage</code>), and <strong>Account Security</strong> (links to password reset flow). No plan/subscription UI.</p>
+
+    <h4>TrashPage.jsx</h4>
+    <p>Lists soft-deleted tasks from <code>TaskContext.trash</code>. Each entry has two actions: <strong>Restore</strong> (calls <code>taskContext.restoreTask(id)</code>) and <strong>Delete forever</strong> (calls <code>taskContext.permanentDelete(id)</code>). Sorting is by <code>deletedAt</code> descending.</p>
+
+    <h4>WelcomePage.jsx</h4>
+    <p>A post-registration landing page shown immediately after account creation. Introduces the Eisenhower Matrix quadrants and provides a "Go to my board" call to action that navigates to <code>/board</code>.</p>
+
+    <h4>IntegrationsPage.jsx</h4>
+    <p>A placeholder page for future third-party integrations (calendar sync, Slack, etc.). Currently renders static UI cards with "Coming soon" states.</p>
+  </div>
+
+  <div class="subsection" id="s4-components">
+    <h3>4.5 Components</h3>
+
+    <h4>layout/Sidebar.jsx</h4>
+    <p>The persistent left navigation column. Renders two groups of nav items separated by <code>marginTop: 'auto'</code> to push the bottom group to the bottom of the flex column:</p>
+    <ul>
+      <li><strong>Top group:</strong> My Board, Analytics, Team, Notifications, Journal</li>
+      <li><strong>Bottom group:</strong> Trash, Integrations, Settings</li>
+    </ul>
+    <p>Dynamic badges:</p>
+    <ul>
+      <li><strong>My Board</strong> — shows active task count; badge turns red if any tasks are overdue</li>
+      <li><strong>Notifications</strong> — shows overdue task count; red when non-zero</li>
+      <li><strong>Trash</strong> — shows count of items in trash</li>
+    </ul>
+    <p>The brand logo (<code>&lt;Brand /&gt;</code>) navigates to <code>/login</code> on click (effectively a logout-and-home action). The user row at the bottom shows the avatar, displayName, email, and a logout button (rotated arrow icon).</p>
+    <p>Active state is determined by <code>pathname === item.id || pathname.startsWith(item.id + '/')</code>, applying the <code>is-active</code> class for current-route highlighting.</p>
+
+    <h4>layout/Topbar.jsx</h4>
+    <p>A slim header rendered at the top of each page. Accepts three props:</p>
+    <ul>
+      <li><code>title</code> — the page heading rendered as <code>&lt;h1&gt;</code></li>
+      <li><code>onSearch</code> — callback fired on input change, passed the search string</li>
+      <li><code>actions</code> — a React node rendered in the right slot (used by BoardPage to place filter/compact toggle buttons)</li>
+    </ul>
+
+    <h4>board/QuadrantBoard.jsx</h4>
+    <p>The root board component. Wraps all four <code>Quadrant</code> columns in a <code>DragDropContext</code>. The <code>onDragEnd</code> handler:</p>
+    <ol>
+      <li>Guards against drops with no destination or same-position drops</li>
+      <li>Calls <code>moveTask(draggableId, destination.droppableId, destination.index)</code></li>
+    </ol>
+    <p>The <code>applyFiltersAndSearch</code> function applies search query and filter object to each quadrant's task list before passing it to the Quadrant component. Filters for due dates use <code>Date</code> arithmetic to determine Overdue, Today, and This Week.</p>
+
+    <h4>board/Quadrant.jsx</h4>
+    <p>Renders a single quadrant column. Exports the <code>QUADRANTS</code> constant array (imported by QuadrantBoard, TaskModal, AnalyticsPage, and others) that maps quadrant IDs to display metadata:</p>
+    <pre><code><span class="kw">export const</span> QUADRANTS = [
+  { id: <span class="str">'q1'</span>, num: <span class="str">'01'</span>, label: <span class="str">'Do First'</span>,  subtitle: <span class="str">'Urgent · Important'</span>,         color: <span class="str">'var(--q1)'</span>, soft: <span class="str">'var(--q1-soft)'</span> },
+  { id: <span class="str">'q2'</span>, num: <span class="str">'02'</span>, label: <span class="str">'Schedule'</span>,  subtitle: <span class="str">'Not urgent · Important'</span>,     color: <span class="str">'var(--q2)'</span>, soft: <span class="str">'var(--q2-soft)'</span> },
+  { id: <span class="str">'q3'</span>, num: <span class="str">'03'</span>, label: <span class="str">'Delegate'</span>,  subtitle: <span class="str">'Urgent · Not important'</span>,     color: <span class="str">'var(--q3)'</span>, soft: <span class="str">'var(--q3-soft)'</span> },
+  { id: <span class="str">'q4'</span>, num: <span class="str">'04'</span>, label: <span class="str">'Eliminate'</span>, subtitle: <span class="str">'Not urgent · Not important'</span>, color: <span class="str">'var(--q4)'</span>, soft: <span class="str">'var(--q4-soft)'</span> },
+];</code></pre>
+    <p>The quadrant header shows the quadrant number, label, subtitle, task count, an overdue badge (if any tasks are overdue), an add-task button, and a collapse/expand toggle. The body is a <code>Droppable</code> that highlights with the quadrant's soft colour when a card is dragged over it.</p>
+
+    <h4>board/TaskCard.jsx</h4>
+    <p>Renders an individual task card. Has a <code>compact</code> prop that renders a simplified version (title + overdue dot only), used when the board is in compact view mode.</p>
+    <p>The <code>formatDue</code> exported helper converts a raw date string to a human-readable label: "Overdue · Jan 5", "Today", "Tomorrow", "Mon, Jan 8", or a short date. It also returns an <code>overdue</code> boolean that triggers a red top border stripe on the card and red text on the due date.</p>
+    <p>Card interaction: clicking anywhere on the card fires <code>onClick(task)</code>. The checkbox button and trash button call <code>e.stopPropagation()</code> to prevent the click from bubbling to the card's onClick handler.</p>
+    <p>The card meta row shows: due date, priority (colour-coded dot, omitted for Low), first label, comment count (with icon), and the assignee avatar (right-aligned).</p>
+
+    <h4>tasks/TaskModal.jsx</h4>
+    <p>The full task editor, rendered as a modal overlay. Serves dual purpose: create mode (no <code>task</code> prop) and edit mode (<code>task</code> prop provided). Tabs: <strong>Details</strong>, <strong>Comments</strong>, <strong>Activity</strong>.</p>
+    <p>Key behaviours:</p>
+    <ul>
+      <li><strong>AI quadrant suggestion (create mode)</strong> — debounced at 700ms after title input; fires <code>suggestQuadrant(title, notes)</code> when title is at least 10 characters. Shows a suggestion banner with Accept/Dismiss actions.</li>
+      <li><strong>Title hints</strong> — the AI suggestion response includes <code>titleHints</code> (array of improvement suggestions) shown as yellow callout chips below the title input.</li>
+      <li><strong>Misclassification warning (FR-413, edit mode)</strong> — on mount, calls <code>checkMisclassification(task.title, task.notes, task.quadrant)</code>. If the AI disagrees with the current quadrant, shows a warning banner with the suggested quadrant and reason.</li>
+      <li><strong>Subtasks</strong> — an "AI Subtasks" button calls <code>suggestSubtasks(title, notes)</code> and renders the returned list as a checklist below the notes field.</li>
+      <li><strong>Due date picker</strong> — uses <code>dateInputRef.current.showPicker()</code> to programmatically open the native date picker.</li>
+      <li><strong>Label management</strong> — Enter key or comma adds a label; clicking × on a label chip removes it.</li>
+      <li><strong>Quadrant picker</strong> — a floating overlay with four colour-coded quadrant buttons, toggled by clicking the current quadrant chip.</li>
+    </ul>
+
+    <h4>ui/Icon.jsx</h4>
+    <p>An SVG icon lookup component. Accepts <code>name</code>, <code>size</code>, and <code>stroke</code> props. Each icon is a pre-drawn SVG path keyed by name: <code>grid</code>, <code>analytics</code>, <code>users</code>, <code>bell</code>, <code>notes</code>, <code>trash</code>, <code>link</code>, <code>cog</code>, <code>plus</code>, <code>x</code>, <code>arrow</code>, <code>clock</code>, <code>star</code>, <code>download</code>, <code>eye</code>, <code>search</code>, <code>drag</code>, <code>check</code>, <code>message</code>, <code>chevronUp</code>, <code>chevronDown</code>. Returns <code>null</code> for unknown icon names.</p>
+
+    <h4>ui/Brand.jsx</h4>
+    <p>The TaskMatrix logo mark: a 2×2 grid of coloured squares (Q1 red, Q2 blue, Q3 amber, Q4 green) rendered as a CSS grid, followed by the "TaskMatrix" wordmark. Accepts a numeric <code>size</code> prop (defaults to 32) that scales both the grid and the font. The <code>onClick</code> prop allows navigation on click (used by Sidebar to link to the login page).</p>
+
+    <h4>ui/Avatar.jsx</h4>
+    <p>A circular avatar with initials and a hue-based background colour. Accepts a <code>person</code> object with <code>initials</code> and <code>hue</code> fields, or a string identifier like <code>'me'</code>. The background colour is derived from the hue using <code>hsl(hue, 60%, 85%)</code> for light mode. Size is configurable via the <code>size</code> prop.</p>
+
+    <h4>ui/Toast.jsx</h4>
+    <p>A lightweight toast notification system. Exports a <code>useToast()</code> hook that provides <code>toast.success(message)</code> and <code>toast.error(message)</code> methods, and a <code>&lt;Toast /&gt;</code> component that renders active notifications in a fixed overlay at the bottom of the screen with auto-dismiss.</p>
+
+    <h4>ui/Toggle.jsx</h4>
+    <p>A styled toggle switch component used in SettingsPage. Renders as a <code>&lt;button&gt;</code> with a sliding knob, accepting <code>checked</code> and <code>onChange</code> props for controlled usage.</p>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s5">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2>API Reference</h2>
+  </div>
+
+  <p>All endpoints are prefixed with <code>/api</code>. Endpoints marked <span class="badge badge-auth">AUTH</span> require a valid <code>Authorization: Bearer &lt;token&gt;</code> header.</p>
+
+  <div class="subsection" id="s5-auth">
+    <h3>5.1 Authentication Endpoints — <code>/api/auth</code></h3>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/auth/register</span>
+      <span class="endpoint-desc">Create a new user account. Returns a JWT token and user object.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Request body:</strong></p>
+    <pre><code>{ <span class="str">"displayName"</span>: <span class="str">"Alice"</span>, <span class="str">"email"</span>: <span class="str">"alice@example.com"</span>, <span class="str">"password"</span>: <span class="str">"Secure#123"</span>, <span class="str">"timezone"</span>: <span class="str">"America/New_York"</span> }</code></pre>
+    <p style="margin:0 0 6px; font-size:13px;"><strong>Password policy:</strong> 8+ chars, one uppercase, one digit, one special character.</p>
+    <p style="margin:0 0 6px; font-size:13px;"><strong>Responses:</strong> <code>201</code> <code>{ token, user }</code> · <code>400</code> validation error · <code>409</code> email already registered</p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/auth/login</span>
+      <span class="endpoint-desc">Authenticate with email + password. Returns a JWT token and user object.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Request body:</strong> <code>{ "email": "...", "password": "..." }</code></p>
+    <p style="margin:0 0 6px; font-size:13px;"><strong>Responses:</strong> <code>200</code> <code>{ token, user }</code> · <code>401</code> invalid credentials · <code>423</code> account locked</p>
+    <p style="font-size:13px;">After 5 consecutive failed logins the account is locked for 15 minutes (HTTP 423 Locked). The remaining attempt count is included in the 401 response message.</p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-get">GET</span>
+      <span class="endpoint-path">/auth/me <span class="badge badge-auth">AUTH</span></span>
+      <span class="endpoint-desc">Return the currently authenticated user.</span>
+    </div>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>200</code> User object (password and reset token fields excluded)</p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-put">PUT</span>
+      <span class="endpoint-path">/auth/me <span class="badge badge-auth">AUTH</span></span>
+      <span class="endpoint-desc">Update the authenticated user's profile.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Updatable fields:</strong> <code>displayName</code>, <code>timezone</code>, <code>notificationPrefs</code>, <code>aiPrefs</code>, <code>darkMode</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>200</code> Updated user object</p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-get">GET</span>
+      <span class="endpoint-path">/auth/search?email= <span class="badge badge-auth">AUTH</span></span>
+      <span class="endpoint-desc">Look up a user by email address. Used for team invitations.</span>
+    </div>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>200</code> <code>{ _id, displayName, email, avatarInitials }</code> · <code>404</code> no account found</p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/auth/forgot-password</span>
+      <span class="endpoint-desc">Request a password reset token. Always responds OK to prevent email enumeration.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Request body:</strong> <code>{ "email": "alice@example.com" }</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>200</code> <code>{ message, resetToken, resetUrl }</code> — in production, <code>resetToken</code> would be removed and sent via email instead.</p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/auth/reset-password</span>
+      <span class="endpoint-desc">Reset password using a token received from forgot-password.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Request body:</strong> <code>{ "token": "...", "password": "NewSecure#456" }</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>200</code> <code>{ token, message }</code> (new JWT) · <code>400</code> invalid or expired token</p>
+  </div>
+
+  <div class="subsection" id="s5-tasks">
+    <h3>5.2 Task Endpoints — <code>/api/tasks</code> <span class="badge badge-auth">ALL AUTH</span></h3>
+
+    <div class="endpoint-row">
+      <span class="badge badge-get">GET</span>
+      <span class="endpoint-path">/tasks</span>
+      <span class="endpoint-desc">Get all active (non-deleted) tasks for the authenticated user, sorted by quadrant, order, createdAt.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-get">GET</span>
+      <span class="endpoint-path">/tasks/trash</span>
+      <span class="endpoint-desc">Get all soft-deleted tasks for the authenticated user, sorted by deletedAt descending.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/tasks</span>
+      <span class="endpoint-desc">Create a new task. The owner field is set server-side to the authenticated user.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Required body fields:</strong> <code>title</code>, <code>quadrant</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Optional:</strong> <code>notes</code>, <code>priority</code>, <code>labels</code>, <code>dueDate</code>, <code>dueTime</code>, <code>assignee</code></p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-put">PUT</span>
+      <span class="endpoint-path">/tasks/:id</span>
+      <span class="endpoint-desc">Update any fields on a task. Ownership is verified. Quadrant changes are logged in the activity array.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-delete">DELETE</span>
+      <span class="endpoint-path">/tasks/:id</span>
+      <span class="endpoint-desc">Soft-delete a task (moves to trash). Sets deleted=true and deletedAt timestamp.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-patch">PATCH</span>
+      <span class="endpoint-path">/tasks/:id/restore</span>
+      <span class="endpoint-desc">Restore a soft-deleted task back to the active board.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-delete">DELETE</span>
+      <span class="endpoint-path">/tasks/:id/permanent</span>
+      <span class="endpoint-desc">Permanently delete a task document. This action is irreversible.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-patch">PATCH</span>
+      <span class="endpoint-path">/tasks/:id/toggle</span>
+      <span class="endpoint-desc">Toggle the completed state. Sets or clears completedAt timestamp.</span>
+    </div>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/tasks/:id/comments</span>
+      <span class="endpoint-desc">Add a comment to a task.</span>
+    </div>
+    <p style="margin:0 0 16px; padding-left:0; font-size:13px;"><strong>Body:</strong> <code>{ "body": "Comment text" }</code></p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/tasks/reorder</span>
+      <span class="endpoint-desc">Batch update quadrant and order for multiple tasks after a drag-and-drop operation.</span>
+    </div>
+    <p style="margin:0 0 16px; padding-left:0; font-size:13px;"><strong>Body:</strong> <code>{ "updates": [{ "id": "...", "quadrant": "q2", "order": 0 }, ...] }</code></p>
+  </div>
+
+  <div class="subsection" id="s5-ai">
+    <h3>5.3 AI Endpoints — <code>/api/ai</code></h3>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/ai/suggest</span>
+      <span class="endpoint-desc">Suggest the best Eisenhower quadrant for a task based on title and notes.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Body:</strong> <code>{ "title": "...", "notes": "..." }</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>{ quadrant, quadrantLabel, confidence, reason, titleHints, cached? }</code></p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/ai/subtasks</span>
+      <span class="endpoint-desc">Generate a list of suggested subtasks for a task.</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Body:</strong> <code>{ "title": "...", "notes": "..." }</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>{ subtasks: ["step 1", "step 2", ...], cached? }</code></p>
+
+    <div class="endpoint-row">
+      <span class="badge badge-post">POST</span>
+      <span class="endpoint-path">/ai/misclassify</span>
+      <span class="endpoint-desc">Check if a task is in the wrong quadrant compared to the AI suggestion (FR-413).</span>
+    </div>
+    <p style="margin:0 0 6px; padding-left:0; font-size:13px;"><strong>Body:</strong> <code>{ "title": "...", "notes": "...", "currentQuadrant": "q3" }</code></p>
+    <p style="margin:0 0 16px; font-size:13px;"><strong>Response:</strong> <code>{ isMisclassified, currentQuadrant, currentLabel, suggestedQuadrant, suggestedLabel, confidence, reason }</code></p>
+  </div>
+
+  <div class="subsection" id="s5-health">
+    <h3>5.4 Health Check</h3>
+    <div class="endpoint-row">
+      <span class="badge badge-get">GET</span>
+      <span class="endpoint-path">/api/health</span>
+      <span class="endpoint-desc">Simple liveness probe. Returns <code>{ "status": "ok" }</code>. Useful for load balancer health checks.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 6 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s6">
+  <div class="section-header">
+    <span class="section-num">06</span>
+    <h2>Data Models Reference</h2>
+  </div>
+
+  <div class="subsection" id="s6-user">
+    <h3>6.1 User Model</h3>
+    <p>Collection: <code>users</code> &nbsp;|&nbsp; Mongoose model: <code>User</code></p>
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Validation / Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>displayName</code></td><td>String</td><td>—</td><td>Required, trimmed</td></tr>
+        <tr><td><code>email</code></td><td>String</td><td>—</td><td>Required, unique, lowercased, trimmed</td></tr>
+        <tr><td><code>password</code></td><td>String</td><td>—</td><td><code>select:false</code>. Stored as bcrypt(12) hash.</td></tr>
+        <tr><td><code>timezone</code></td><td>String</td><td><code>'UTC'</code></td><td>IANA timezone string</td></tr>
+        <tr><td><code>avatarInitials</code></td><td>String</td><td><code>''</code></td><td>Auto-set from displayName in pre-save hook</td></tr>
+        <tr><td><code>role</code></td><td>String enum</td><td><code>'editor'</code></td><td>One of: admin, editor, viewer</td></tr>
+        <tr><td><code>notificationPrefs.inApp</code></td><td>Boolean</td><td><code>true</code></td><td>In-app notifications enabled</td></tr>
+        <tr><td><code>notificationPrefs.email</code></td><td>Boolean</td><td><code>false</code></td><td>Email notifications enabled</td></tr>
+        <tr><td><code>aiPrefs.autoSuggestQuadrant</code></td><td>Boolean</td><td><code>true</code></td><td>Auto-trigger AI quadrant suggestion in modal</td></tr>
+        <tr><td><code>aiPrefs.suggestTitleImprovements</code></td><td>Boolean</td><td><code>true</code></td><td>Show title hint chips</td></tr>
+        <tr><td><code>aiPrefs.suggestSubtasks</code></td><td>Boolean</td><td><code>false</code></td><td>Auto-generate subtasks on task open</td></tr>
+        <tr><td><code>googleId</code></td><td>String</td><td>—</td><td>Reserved for future OAuth integration</td></tr>
+        <tr><td><code>loginAttempts</code></td><td>Number</td><td><code>0</code></td><td>Failed login counter; reset on success</td></tr>
+        <tr><td><code>lockUntil</code></td><td>Date</td><td>—</td><td>Expiry of account lockout; absent when unlocked</td></tr>
+        <tr><td><code>passwordResetToken</code></td><td>String</td><td>—</td><td><code>select:false</code>. SHA-256 hash of reset token</td></tr>
+        <tr><td><code>passwordResetExpires</code></td><td>Date</td><td>—</td><td><code>select:false</code>. 1-hour window from token generation</td></tr>
+        <tr><td><code>plan</code></td><td>String enum</td><td><code>'free'</code></td><td>One of: free, pro. Reserved for future billing.</td></tr>
+        <tr><td><code>darkMode</code></td><td>Boolean</td><td><code>false</code></td><td>Persisted dark mode preference</td></tr>
+        <tr><td><code>createdAt</code></td><td>Date</td><td>auto</td><td>Set by <code>timestamps: true</code></td></tr>
+        <tr><td><code>updatedAt</code></td><td>Date</td><td>auto</td><td>Updated by <code>timestamps: true</code></td></tr>
+      </tbody>
+    </table>
+    <p><strong>Virtuals:</strong> <code>isLocked</code> — returns <code>true</code> if <code>lockUntil &gt; Date.now()</code>.</p>
+    <p><strong>Instance methods:</strong> <code>comparePassword(plain)</code> — returns Promise&lt;boolean&gt;.</p>
+  </div>
+
+  <div class="subsection" id="s6-task">
+    <h3>6.2 Task Model</h3>
+    <p>Collection: <code>tasks</code> &nbsp;|&nbsp; Mongoose model: <code>Task</code></p>
+    <table class="schema-table">
+      <thead><tr><th>Field</th><th>Type</th><th>Default</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>title</code></td><td>String</td><td>—</td><td>Required, trimmed</td></tr>
+        <tr><td><code>notes</code></td><td>String</td><td><code>''</code></td><td>Extended task description</td></tr>
+        <tr><td><code>quadrant</code></td><td>String enum</td><td>—</td><td>Required. One of: q1, q2, q3, q4</td></tr>
+        <tr><td><code>priority</code></td><td>String enum</td><td><code>'Medium'</code></td><td>One of: High, Medium, Low</td></tr>
+        <tr><td><code>labels</code></td><td>String[]</td><td><code>[]</code></td><td>User-defined tags</td></tr>
+        <tr><td><code>dueDate</code></td><td>Date</td><td>—</td><td>Optional deadline</td></tr>
+        <tr><td><code>dueTime</code></td><td>String</td><td><code>''</code></td><td>Time-of-day string (e.g. "14:30")</td></tr>
+        <tr><td><code>completed</code></td><td>Boolean</td><td><code>false</code></td><td>Completion flag</td></tr>
+        <tr><td><code>completedAt</code></td><td>Date</td><td>—</td><td>Set when completed=true; cleared when reopened</td></tr>
+        <tr><td><code>deleted</code></td><td>Boolean</td><td><code>false</code></td><td>Soft-delete flag</td></tr>
+        <tr><td><code>deletedAt</code></td><td>Date</td><td>—</td><td>Set when moved to trash</td></tr>
+        <tr><td><code>assignee</code></td><td>String</td><td><code>'me'</code></td><td>Assignee identifier</td></tr>
+        <tr><td><code>aiSuggested</code></td><td>Boolean</td><td><code>false</code></td><td>True if quadrant was AI-suggested</td></tr>
+        <tr><td><code>aiConfidence</code></td><td>String enum</td><td><code>'Medium'</code></td><td>High / Medium / Low</td></tr>
+        <tr><td><code>aiReason</code></td><td>String</td><td><code>''</code></td><td>AI explanation text</td></tr>
+        <tr><td><code>order</code></td><td>Number</td><td><code>0</code></td><td>Sort position within quadrant</td></tr>
+        <tr><td><code>owner</code></td><td>ObjectId (ref User)</td><td>—</td><td>Indexed. All queries filter by this.</td></tr>
+        <tr><td><code>comments</code></td><td>commentSchema[]</td><td><code>[]</code></td><td>Embedded comment thread</td></tr>
+        <tr><td><code>activity</code></td><td>activitySchema[]</td><td><code>[]</code></td><td>Audit trail</td></tr>
+        <tr><td><code>createdAt</code></td><td>Date</td><td>auto</td><td>Timestamps plugin</td></tr>
+        <tr><td><code>updatedAt</code></td><td>Date</td><td>auto</td><td>Timestamps plugin</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection" id="s6-subdocs">
+    <h3>6.3 Subdocuments</h3>
+
+    <h4>commentSchema</h4>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>String</td><td>User identifier; default <code>'me'</code></td></tr>
+        <tr><td><code>body</code></td><td>String</td><td>Required. Comment text.</td></tr>
+        <tr><td><code>createdAt</code>, <code>updatedAt</code></td><td>Date</td><td>Timestamps plugin on subdoc</td></tr>
+      </tbody>
+    </table>
+
+    <h4>activitySchema</h4>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>user</code></td><td>String</td><td>Default <code>'me'</code></td></tr>
+        <tr><td><code>action</code></td><td>String</td><td>e.g. <code>created</code>, <code>updated</code>, <code>deleted</code>, <code>restored</code>, <code>completed</code>, <code>reopened</code>, <code>commented</code></td></tr>
+        <tr><td><code>detail</code></td><td>String</td><td>Human-readable description of the change</td></tr>
+        <tr><td><code>createdAt</code></td><td>Date</td><td>Default <code>Date.now</code>. <code>_id: false</code> on this schema.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 7 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s7">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2>Authentication Flow</h2>
+  </div>
+
+  <div class="subsection" id="s7-register">
+    <h3>7.1 Registration</h3>
+    <div class="flow" style="flex-direction:column; align-items:stretch; gap:8px; margin:20px 0;">
+      <div class="flow-step">1. Client — POST /api/auth/register with displayName, email, password, timezone</div>
+      <div class="flow-step">2. Server — validate required fields → validate password strength</div>
+      <div class="flow-step">3. Server — check email uniqueness (User.findOne); 409 if taken</div>
+      <div class="flow-step">4. Server — User.create() → triggers pre-save hook → bcrypt.hash(password, 12)</div>
+      <div class="flow-step">5. Server — respond 201 with { token: signToken(user._id), user: { ... } }</div>
+      <div class="flow-step">6. Client — store token in localStorage['tm_token'], set AuthContext user, navigate to /welcome</div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s7-login">
+    <h3>7.2 Login &amp; Account Lockout</h3>
+    <div class="flow" style="flex-direction:column; align-items:stretch; gap:8px; margin:20px 0;">
+      <div class="flow-step">1. Client — POST /api/auth/login with email, password</div>
+      <div class="flow-step">2. Server — User.findOne({ email }).select('+password +loginAttempts +lockUntil')</div>
+      <div class="flow-step">3. Server — if lockUntil &gt; now: respond 423 with remaining time</div>
+      <div class="flow-step">4. Server — user.comparePassword(password) → bcrypt.compare()</div>
+      <div class="flow-step">5a. Password WRONG — increment loginAttempts; if ≥5, set lockUntil = now + 15min → 423; else 401 with attempts remaining</div>
+      <div class="flow-step">5b. Password CORRECT — User.findByIdAndUpdate({ loginAttempts: 0, $unset: { lockUntil: 1 } }) → respond 200 with token</div>
+      <div class="flow-step">6. Client — store token, set user in context, navigate to /board</div>
+    </div>
+    <div class="callout callout-warn">
+      <span class="callout-icon">⚠</span>
+      <div class="callout-body"><strong>Counter reset uses findByIdAndUpdate</strong> Step 5b uses <code>findByIdAndUpdate</code> rather than <code>user.save()</code> to avoid triggering the bcrypt pre-save hook, which would re-hash the already-hashed password stored in the user document.</div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s7-jwt-flow">
+    <h3>7.3 JWT Lifecycle</h3>
+    <p>Tokens are signed with <code>HS256</code> (HMAC-SHA256) using the <code>JWT_SECRET</code> environment variable. The payload contains only <code>{ id: &lt;user ObjectId&gt; }</code>. Tokens expire after <strong>30 days</strong>.</p>
+    <p><strong>Per-request flow on protected routes:</strong></p>
+    <div class="flow" style="flex-direction:column; align-items:stretch; gap:8px; margin:20px 0;">
+      <div class="flow-step">1. Client — Axios interceptor reads localStorage['tm_token'] and sets Authorization: Bearer &lt;token&gt;</div>
+      <div class="flow-step">2. Server — protect middleware reads Authorization header, validates Bearer prefix</div>
+      <div class="flow-step">3. Server — jwt.verify(token, JWT_SECRET) — throws if expired or invalid signature</div>
+      <div class="flow-step">4. Server — User.findById(decoded.id).select('-password') — attaches to req.user</div>
+      <div class="flow-step">5. Server — calls next() to hand off to the route controller</div>
+    </div>
+    <p>If the token is missing, malformed, expired, or the user has been deleted, a <code>401 Unauthorized</code> response is returned and the route controller is never called.</p>
+    <p>On the client side, a 401 response from any API call should trigger a logout (clear token, redirect to login). Currently this is handled by AuthContext's <code>getMe</code> error handler on startup — catching mid-session 401s in the Axios interceptor would be a recommended enhancement.</p>
+  </div>
+
+  <div class="subsection" id="s7-reset">
+    <h3>7.4 Password Reset Flow</h3>
+    <div class="flow" style="flex-direction:column; align-items:stretch; gap:8px; margin:20px 0;">
+      <div class="flow-step">1. User — opens ForgotPasswordModal in LoginPage, enters email</div>
+      <div class="flow-step">2. Client — POST /api/auth/forgot-password with { email }</div>
+      <div class="flow-step">3. Server — if user found: crypto.randomBytes(32) → rawToken; store sha256(rawToken) as passwordResetToken + 1h expiry; [production: email link]; [dev: return rawToken in response]</div>
+      <div class="flow-step">4. User — enters the rawToken and a new password in step 2 of the modal</div>
+      <div class="flow-step">5. Client — POST /api/auth/reset-password with { token: rawToken, password }</div>
+      <div class="flow-step">6. Server — hash the token, find user by hash + unexpired; validate new password strength</div>
+      <div class="flow-step">7. Server — user.password = newPassword; clear reset fields; clear lockout; user.save() → pre-save hook hashes new password</div>
+      <div class="flow-step">8. Server — respond with new JWT token so user is automatically logged in</div>
+    </div>
+    <div class="callout callout-danger">
+      <span class="callout-icon">⚠</span>
+      <div class="callout-body"><strong>Production change required</strong> The current implementation returns <code>resetToken</code> directly in the API response for development convenience. Before production deployment, remove <code>resetToken</code> from the response and send it exclusively via email.</div>
+    </div>
+  </div>
+
+  <div class="subsection" id="s7-guest">
+    <h3>7.5 Guest Sessions</h3>
+    <p>Guest mode allows unauthenticated users to explore the board interface without creating an account. The <code>loginAsGuest</code> function in AuthContext:</p>
+    <ol>
+      <li>Clears any existing <code>tm_token</code> from localStorage</li>
+      <li>Creates a synthetic user object: <code>{ _id: 'guest', displayName: 'Guest', email: '', isGuest: true }</code></li>
+      <li>Stores it in <code>localStorage['tm_guest']</code></li>
+      <li>Sets <code>user</code> in AuthContext to this object</li>
+    </ol>
+    <p>TaskContext detects <code>user.isGuest === true</code> and skips all API calls, operating entirely on in-memory state. Guest tasks exist only until the page is refreshed. When the guest clicks the logout icon, both <code>tm_token</code> and <code>tm_guest</code> are cleared.</p>
+    <div class="callout callout-info">
+      <span class="callout-icon">ℹ</span>
+      <div class="callout-body">Note: The current LoginPage does not expose a "Continue as guest" button in the UI — the <code>loginAsGuest</code> function exists in the context but is not wired to any visible control. This was likely intentional product decision to encourage account creation.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ -->
+<!-- SECTION 8 -->
+<!-- ══════════════════════════════════════════════════════════════ -->
+<section class="section" id="s8">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2>Key Patterns &amp; Conventions</h2>
+  </div>
+
+  <div class="subsection" id="s8-ownership">
+    <h3>8.1 Data Ownership &amp; Isolation</h3>
+    <p>Every task document has an <code>owner</code> field set to the authenticated user's ObjectId. All database queries in <code>taskController.js</code> include <code>owner: req.user._id</code> in the filter predicate. This means:</p>
+    <ul>
+      <li>A user can never retrieve, update, or delete another user's tasks — the query will return null and the controller will respond 404</li>
+      <li>The <code>owner</code> field has an index for query performance as user task counts grow</li>
+      <li>The client cannot override the owner: <code>createTask</code> spreads <code>req.body</code> but then forcibly sets <code>owner: req.user._id</code>, which takes precedence</li>
+    </ul>
+    <p>This pattern — server-enforced, per-user data scoping — is the primary security control for data privacy. The JWT only identifies the user; the ownership filter on every query enforces isolation.</p>
+  </div>
+
+  <div class="subsection" id="s8-softdelete">
+    <h3>8.2 Soft-Delete Pattern</h3>
+    <p>Tasks are never physically removed by the normal delete flow. Instead:</p>
+    <ul>
+      <li><code>DELETE /api/tasks/:id</code> sets <code>{ deleted: true, deletedAt: new Date() }</code></li>
+      <li><code>GET /api/tasks</code> filters with <code>{ deleted: { $ne: true } }</code></li>
+      <li><code>GET /api/tasks/trash</code> filters with <code>{ deleted: true }</code></li>
+      <li><code>PATCH /api/tasks/:id/restore</code> clears both fields</li>
+      <li><code>DELETE /api/tasks/:id/permanent</code> calls <code>findOneAndDelete</code> for true removal</li>
+    </ul>
+    <p>Benefits: users get a recoverable trash experience; the activity log is preserved for audit; analytics based on <code>completedAt</code> remain accurate for deleted tasks until permanent removal.</p>
+  </div>
+
+  <div class="subsection" id="s8-optimistic">
+    <h3>8.3 Optimistic UI Updates</h3>
+    <p>TaskContext implements optimistic updates for drag-and-drop and task completion to keep the UI feeling responsive:</p>
+    <ul>
+      <li><strong>moveTask</strong> — updates the local <code>tasks</code> array immediately, then fires the API call. If the API call fails, the local state and server state diverge until the next reload. A <code>reload()</code> function is exposed to force a fresh fetch.</li>
+      <li><strong>deleteTask</strong> — removes the task from <code>tasks</code> and adds it to <code>trash</code> locally, then calls the API. No rollback on API failure.</li>
+      <li><strong>toggleComplete</strong> — in API mode, waits for the server response before updating state (not optimistic), ensuring <code>completedAt</code> is set by the server.</li>
+    </ul>
+    <p>The trade-off is simplicity over perfect consistency. For a production app with multiple concurrent users or unreliable connectivity, implementing rollback-on-failure would be recommended.</p>
+  </div>
+
+  <div class="subsection" id="s8-cache">
+    <h3>8.4 AI Response Caching</h3>
+    <p>The AI controller implements a simple in-memory cache to avoid redundant computation for repeated identical requests (e.g., the misclassify check fires every time a task modal opens).</p>
+    <pre><code><span class="kw">const</span> aiCache = <span class="kw">new</span> <span class="cl">Map</span>();
+<span class="kw">const</span> CACHE_TTL = <span class="num">5</span> * <span class="num">60</span> * <span class="num">1000</span>; <span class="cm">// 5 minutes in milliseconds</span>
+
+<span class="kw">function</span> <span class="fn">getCached</span>(key) {
+  <span class="kw">const</span> entry = aiCache.<span class="fn">get</span>(key);
+  <span class="kw">if</span> (!entry) <span class="kw">return null</span>;
+  <span class="kw">if</span> (Date.<span class="fn">now</span>() - entry.ts &gt; CACHE_TTL) { aiCache.<span class="fn">delete</span>(key); <span class="kw">return null</span>; }
+  <span class="kw">return</span> entry.data;
+}
+<span class="kw">function</span> <span class="fn">setCache</span>(key, data) {
+  <span class="kw">if</span> (aiCache.size &gt; <span class="num">500</span>) aiCache.<span class="fn">clear</span>(); <span class="cm">// prevent memory leak</span>
+  aiCache.<span class="fn">set</span>(key, { data, ts: Date.<span class="fn">now</span>() });
+}</code></pre>
+    <p>Cache keys are built from the lowercased, trimmed title and notes concatenated with a <code>|||</code> separator plus a suffix for the endpoint (<code>|suggest</code> or <code>|subtasks</code>). The cache is process-local — it resets on server restart and is not shared across multiple Node.js workers. For production, move this to Redis for durability and multi-process sharing.</p>
+  </div>
+
+  <div class="subsection" id="s8-activity">
+    <h3>8.5 Activity Log Pattern</h3>
+    <p>Every task carries an <code>activity</code> array that functions as an append-only audit log. Entries are added via MongoDB's <code>$push</code> operator, which is atomic and does not risk race conditions from concurrent reads and writes.</p>
+    <p>An activity entry is added for every meaningful state change: creation, updates (with special messaging for quadrant moves), soft deletion, restore, completion toggle, and comments. The activity tab in <code>TaskModal</code> renders these entries in reverse-chronological order so users can see the full history of a task.</p>
+    <p>Importantly, when <code>updateTask</code> in the controller detects a quadrant change, it generates a human-readable log entry using the quadrant label map:</p>
+    <pre><code><span class="kw">const</span> labels = { q1: <span class="str">'Do First'</span>, q2: <span class="str">'Schedule'</span>, q3: <span class="str">'Delegate'</span>, q4: <span class="str">'Eliminate'</span> };
+activityEntry.detail = <span class="str">`Moved from <span class="op">${</span>labels[existing.quadrant]<span class="op">}</span> to <span class="op">${</span>labels[req.body.quadrant]<span class="op">}</span>`</span>;</code></pre>
+  </div>
+
+  <div class="subsection" id="s8-errors">
+    <h3>8.6 Error Handling</h3>
+    <p><strong>Backend:</strong> Most controller functions use inline <code>try/catch</code> blocks and directly call <code>res.status(x).json({ message })</code>. The global <code>errorHandler</code> middleware serves as a safety net for uncaught synchronous throws. In development (<code>NODE_ENV=development</code>), stack traces are included in the JSON response.</p>
+    <p><strong>Frontend:</strong> The <code>aiService.js</code> wrapper catches all AI API errors and returns <code>null</code> or empty arrays, so the UI degrades gracefully (no AI suggestions shown, no error thrown). Context methods in TaskContext also catch errors silently in some cases (e.g., <code>moveTask</code> swallows API errors to not disrupt the drag-and-drop UX). More structured error handling — surface errors via the Toast system — is a recommended improvement.</p>
+    <p><strong>HTTP status codes used:</strong></p>
+    <table>
+      <thead><tr><th>Code</th><th>Meaning</th><th>When used</th></tr></thead>
+      <tbody>
+        <tr><td><code>200</code></td><td>OK</td><td>Successful GET, PUT, PATCH, DELETE responses</td></tr>
+        <tr><td><code>201</code></td><td>Created</td><td>Successful POST /register and POST /tasks</td></tr>
+        <tr><td><code>400</code></td><td>Bad Request</td><td>Missing required fields, validation failures</td></tr>
+        <tr><td><code>401</code></td><td>Unauthorized</td><td>Missing/invalid token, wrong credentials</td></tr>
+        <tr><td><code>404</code></td><td>Not Found</td><td>Task not found or doesn't belong to user</td></tr>
+        <tr><td><code>409</code></td><td>Conflict</td><td>Email already registered</td></tr>
+        <tr><td><code>423</code></td><td>Locked</td><td>Account locked after failed login attempts</td></tr>
+        <tr><td><code>500</code></td><td>Internal Server Error</td><td>Unhandled exceptions in controllers</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="subsection" id="s8-naming">
+    <h3>8.7 Naming Conventions</h3>
+    <table>
+      <thead><tr><th>Context</th><th>Convention</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>React components</td><td>PascalCase</td><td><code>TaskCard</code>, <code>QuadrantBoard</code></td></tr>
+        <tr><td>React hooks</td><td>camelCase, prefixed <code>use</code></td><td><code>useAuth</code>, <code>useTaskContext</code>, <code>useToast</code></td></tr>
+        <tr><td>JS variables &amp; functions</td><td>camelCase</td><td><code>signToken</code>, <code>connectDB</code></td></tr>
+        <tr><td>CSS classes</td><td><code>tm-</code> prefix + kebab-case</td><td><code>.tm-task</code>, <code>.tm-quad-header</code></td></tr>
+        <tr><td>CSS custom properties</td><td><code>--</code> + kebab-case</td><td><code>--bg</code>, <code>--q1-soft</code>, <code>--font-body</code></td></tr>
+        <tr><td>localStorage keys</td><td><code>tm_</code> or <code>tm-</code> prefix</td><td><code>tm_token</code>, <code>tm_guest</code>, <code>tm-dark-mode</code></td></tr>
+        <tr><td>MongoDB collections</td><td>Mongoose pluralises model names</td><td><code>User</code> → <code>users</code>, <code>Task</code> → <code>tasks</code></td></tr>
+        <tr><td>Environment variables</td><td>SCREAMING_SNAKE_CASE</td><td><code>JWT_SECRET</code>, <code>MONGO_URI</code></td></tr>
+        <tr><td>API routes</td><td>kebab-case, resource nouns</td><td><code>/api/auth</code>, <code>/api/tasks</code></td></tr>
+        <tr><td>Feature reference IDs</td><td>FR- prefix</td><td><code>FR-413</code> (misclassify), <code>FR-424</code> (AI cache)</td></tr>
+      </tbody>
+    </table>
+
+    <h4>File Organisation Convention</h4>
+    <p>Each major concern lives in its own file. Controllers contain only business logic — they import models and respond. Routes contain only wiring (no business logic). Middleware contains only cross-cutting concerns. This separation makes it straightforward to locate and modify any behaviour without reading unrelated code.</p>
+
+    <p>On the frontend, pages are one-per-route and import components. Components import from the <code>ui/</code> layer for primitives and from contexts for data. Services handle all HTTP calls and are the only files that import Axios. This layered import graph prevents circular dependencies and makes mocking straightforward for testing.</p>
+  </div>
+
+  <hr style="margin: 60px 0 40px;" />
+
+  <p style="font-size: 13px; color: var(--ink-4); text-align: center; padding-bottom: 20px;">
+    TaskMatrix Technical Manual · Internal Engineering Reference<br>
+    Generated May 2026 · This is a living document — update it when the codebase changes.
+  </p>
+
+</section>
+
+</div><!-- end .page-wrap -->
+</body>
+</html>
