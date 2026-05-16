@@ -53,22 +53,18 @@ const login = async (req, res) => {
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      user.loginAttempts = (user.loginAttempts || 0) + 1;
-      if (user.loginAttempts >= 5) {
-        user.lockUntil = new Date(Date.now() + 15 * 60 * 1000);
-        user.loginAttempts = 0;
-        await user.save();
+      const attempts = (user.loginAttempts || 0) + 1;
+      if (attempts >= 5) {
+        await User.findByIdAndUpdate(user._id, { loginAttempts: 0, lockUntil: new Date(Date.now() + 15 * 60 * 1000) });
         return res.status(423).json({ message: 'Account locked for 15 minutes after 5 failed attempts.' });
       }
-      await user.save();
-      const remaining = 5 - user.loginAttempts;
+      await User.findByIdAndUpdate(user._id, { loginAttempts: attempts });
+      const remaining = 5 - attempts;
       return res.status(401).json({ message: `Invalid email or password. ${remaining} attempt(s) remaining before lockout.` });
     }
 
-    // Success — reset counters
-    user.loginAttempts = 0;
-    user.lockUntil = undefined;
-    await user.save();
+    // Success — reset counters without triggering pre-save hook
+    await User.findByIdAndUpdate(user._id, { loginAttempts: 0, $unset: { lockUntil: 1 } });
 
     res.json({
       token: signToken(user._id),

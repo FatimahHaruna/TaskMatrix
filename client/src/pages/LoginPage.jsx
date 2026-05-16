@@ -32,20 +32,47 @@ const STRENGTH_HINTS = [
 ];
 
 function ForgotPasswordModal({ onClose }) {
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  // step: 'email' | 'reset' | 'done'
+  const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
+  const [token, setToken] = useState('');
+  const [newPassword, setNewPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState(null);
   const [error, setError] = useState('');
 
-  async function handleSubmit(e) {
+  const pwdStrength = getPasswordStrength(newPassword);
+
+  async function handleRequestToken(e) {
     e.preventDefault();
-    setLoading(true);
     setError('');
+    setLoading(true);
     try {
       const data = await authApiExtra.forgotPassword(email);
-      setResult(data);
+      // In demo mode the token is returned directly; pre-fill it
+      setToken(data.resetToken || '');
+      setStep('reset');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Something went wrong.');
+      setError(err?.response?.data?.message || 'Could not send reset link. Check the email address.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleResetPassword(e) {
+    e.preventDefault();
+    setError('');
+    if (pwdStrength < 4) { setError('Password does not meet requirements.'); return; }
+    setLoading(true);
+    try {
+      await authApiExtra.resetPassword(token, newPassword);
+      // Auto sign-in after reset
+      await login(email, newPassword);
+      onClose();
+      navigate('/board');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Reset failed. The token may have expired.');
     } finally {
       setLoading(false);
     }
@@ -53,45 +80,67 @@ function ForgotPasswordModal({ onClose }) {
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
-      <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', padding: 28, width: 380, boxShadow: 'var(--shadow-3)' }}>
+      <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', padding: 28, width: 400, boxShadow: 'var(--shadow-3)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.02em' }}>Reset password</h3>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.02em' }}>
+            {step === 'email' ? 'Reset password' : 'Set new password'}
+          </h3>
           <button className="tm-btn-icon" onClick={onClose}><Icon name="x" size={14} /></button>
         </div>
 
-        {result ? (
-          <div>
-            <div style={{ padding: '12px 14px', background: 'var(--q4-soft)', color: 'var(--q4-ink)', borderRadius: 8, fontSize: 13, marginBottom: 14 }}>
-              {result.message}
-            </div>
-            {result.resetToken && (
-              <div style={{ marginBottom: 14 }}>
-                <div style={{ fontSize: 12, color: 'var(--ink-3)', marginBottom: 6 }}>
-                  Demo mode: your reset token (normally emailed):
-                </div>
-                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, background: 'var(--bg-2)', padding: '8px 10px', borderRadius: 8, wordBreak: 'break-all', color: 'var(--ink-2)' }}>
-                  {result.resetToken}
-                </div>
-              </div>
-            )}
-            <button className="tm-btn" style={{ width: '100%', justifyContent: 'center' }} onClick={onClose}>Close</button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {step === 'email' && (
+          <form onSubmit={handleRequestToken} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
-              Enter your email and we'll send a reset link. In this demo, the token is returned directly.
+              Enter your registered email address. A reset code will be generated for you.
             </p>
             <div className="tm-form-field">
               <label className="tm-form-label">Email address</label>
-              <input className="tm-input" type="email" placeholder="alex@university.edu" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+              <input className="tm-input" type="email" placeholder="you@example.com" value={email}
+                onChange={(e) => setEmail(e.target.value)} required autoFocus />
             </div>
-            {error && (
-              <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>{error}</div>
-            )}
+            {error && <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>{error}</div>}
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <button type="button" className="tm-btn tm-btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>Cancel</button>
               <button type="submit" className="tm-btn tm-btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={loading}>
-                {loading ? 'Sending…' : 'Send reset link'}
+                {loading ? 'Sending…' : 'Get reset code'}
+              </button>
+            </div>
+          </form>
+        )}
+
+        {step === 'reset' && (
+          <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
+              Your reset code has been generated. Enter it below along with your new password.
+            </p>
+            <div className="tm-form-field">
+              <label className="tm-form-label">Reset code</label>
+              <input className="tm-input" value={token} onChange={(e) => setToken(e.target.value)}
+                placeholder="Paste reset code" required style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }} />
+            </div>
+            <div className="tm-form-field">
+              <label className="tm-form-label">New password</label>
+              <input className="tm-input" type="password" placeholder="••••••••" value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)} required autoFocus autoComplete="new-password" />
+              {newPassword.length > 0 && (
+                <div style={{ marginTop: 6 }}>
+                  <div style={{ background: 'var(--bg-2)', borderRadius: 4, height: 4, overflow: 'hidden' }}>
+                    <div className="tm-pwd-strength-bar" style={{ width: `${(pwdStrength / 4) * 100}%`, background: STRENGTH_COLOR[pwdStrength] }} />
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                    <span style={{ fontSize: 11.5, color: STRENGTH_COLOR[pwdStrength], fontWeight: 600 }}>{STRENGTH_LABEL[pwdStrength]}</span>
+                    {pwdStrength < 4 && <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{STRENGTH_HINTS[pwdStrength]}</span>}
+                  </div>
+                </div>
+              )}
+            </div>
+            {error && <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>{error}</div>}
+            <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+              <button type="button" className="tm-btn tm-btn-ghost" style={{ flex: 1, justifyContent: 'center' }}
+                onClick={() => { setStep('email'); setError(''); }}>Back</button>
+              <button type="submit" className="tm-btn tm-btn-primary" style={{ flex: 1, justifyContent: 'center' }}
+                disabled={loading || pwdStrength < 4}>
+                {loading ? 'Resetting…' : 'Reset & sign in'}
               </button>
             </div>
           </form>
@@ -103,7 +152,7 @@ function ForgotPasswordModal({ onClose }) {
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const { login, register, loginAsGuest } = useAuth();
+  const { login, register } = useAuth();
   const [mode, setMode] = useState('login');
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -270,11 +319,6 @@ export default function LoginPage() {
               <>Already have an account? <a style={{ color: 'var(--ink)', fontWeight: 600, cursor: 'pointer' }} onClick={() => setMode('login')}>Sign in</a></>
             )}
           </div>
-
-          <button type="button" className="tm-btn tm-btn-ghost" style={{ justifyContent: 'center', fontSize: 12, color: 'var(--ink-4)', marginTop: 4 }}
-            onClick={() => { loginAsGuest(); navigate('/board'); }}>
-            Continue without account →
-          </button>
         </form>
       </div>
     </div>
