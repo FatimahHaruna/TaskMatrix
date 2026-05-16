@@ -42,6 +42,7 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
 
   const titleRef = useRef();
   const debounceRef = useRef();
+  const dateInputRef = useRef();
 
   useEffect(() => { titleRef.current?.focus(); }, []);
 
@@ -251,12 +252,20 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                   {selectedQ?.label}
                 </button>
 
-                <label className="tm-btn tm-btn-sm" style={{ cursor: 'pointer', position: 'relative' }}>
+                <button type="button" className="tm-btn tm-btn-sm" style={{ cursor: 'pointer', position: 'relative' }}
+                  onClick={() => dateInputRef.current?.showPicker?.() || dateInputRef.current?.click()}>
                   <Icon name="calendar" size={13} />
-                  {dueDate ? new Date(dueDate + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Due date'}
-                  <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
-                    style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', inset: 0, cursor: 'pointer' }} />
-                </label>
+                  {dueDate ? new Date(dueDate + 'T00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Set due date'}
+                </button>
+                <input ref={dateInputRef} type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)}
+                  style={{ position: 'absolute', opacity: 0, pointerEvents: 'none', width: 0, height: 0 }} />
+                {dueDate && (
+                  <button type="button" className="tm-btn-icon" title="Clear date"
+                    onClick={() => { setDueDate(''); setDueTime(''); }}
+                    style={{ fontSize: 11, color: 'var(--ink-4)' }}>
+                    <Icon name="x" size={11} />
+                  </button>
+                )}
 
                 <input type="time" value={dueTime} onChange={(e) => setDueTime(e.target.value)}
                   className="tm-btn tm-btn-sm"
@@ -270,7 +279,8 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
 
                 <select className="tm-btn tm-btn-sm" value={assignee} onChange={(e) => setAssignee(e.target.value)}
                   style={{ cursor: 'pointer', appearance: 'none' }}>
-                  {PEOPLE.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  <option value="me">Assigned to me</option>
+                  {PEOPLE.filter((p) => p.id !== 'me').map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
 
                 {labels.map((l) => (

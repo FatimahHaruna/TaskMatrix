@@ -78,9 +78,9 @@ export default function Sidebar() {
         <Avatar person={{ id: 'me', initials: user ? (user.avatarInitials || user.displayName?.slice(0,2).toUpperCase() || 'ME') : 'ME', hue: 230 }} size={28} />
         <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.15, flex: 1, minWidth: 0 }}>
           <span style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {user?.displayName || 'Alex Park'}
+            {user?.displayName || 'Guest'}
           </span>
-          <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>Student plan</span>
+          <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{user?.isGuest ? 'Guest' : user?.plan === 'pro' ? 'Pro plan' : 'Free plan'}</span>
         </div>
         {user && (
           <button className="tm-btn-icon" onClick={logout} title="Sign out" style={{ flexShrink: 0 }}>

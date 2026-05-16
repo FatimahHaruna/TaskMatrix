@@ -108,7 +108,6 @@ export default function LoginPage() {
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showForgot, setShowForgot] = useState(false);
@@ -138,7 +137,8 @@ export default function LoginPage() {
         await login(email, password);
         navigate('/board');
       } else {
-        await register(displayName, email, password, timezone);
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        await register(displayName, email, password, tz);
         navigate('/welcome');
       }
     } catch (err) {
@@ -251,13 +251,6 @@ export default function LoginPage() {
               </div>
             )}
           </div>
-
-          {mode === 'register' && (
-            <div className="tm-form-field">
-              <label className="tm-form-label">Timezone</label>
-              <input className="tm-input" value={timezone} onChange={(e) => setTimezone(e.target.value)} placeholder="UTC" />
-            </div>
-          )}
 
           {error && (
             <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>

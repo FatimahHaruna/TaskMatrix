@@ -9,8 +9,8 @@ const SEED = [
   { _id: 's3', title: 'Study for Linear Algebra midterm · Ch. 5–8', quadrant: 'q2', priority: 'Medium', labels: ['math240', 'study'], completed: false, assignee: 'me', comments: [], activity: [] },
   { _id: 's4', title: 'Draft thesis proposal before advisor meeting', quadrant: 'q2', priority: 'Medium', labels: ['thesis'], completed: false, assignee: 'me', comments: [], activity: [] },
   { _id: 's5', title: 'Apply for Stripe summer internship', quadrant: 'q2', priority: 'Medium', labels: ['career'], completed: false, assignee: 'me', comments: [], activity: [] },
-  { _id: 's6', title: 'Pick up textbook holds at library', quadrant: 'q3', priority: 'Low', labels: ['errand'], completed: false, assignee: 'leo', comments: [], activity: [] },
-  { _id: 's7', title: 'Coordinate shared notes doc for study group', quadrant: 'q3', priority: 'Low', labels: ['math240'], completed: false, assignee: 'omar', comments: [], activity: [] },
+  { _id: 's6', title: 'Pick up textbook holds at library', quadrant: 'q3', priority: 'Low', labels: ['errand'], completed: false, assignee: 'me', comments: [], activity: [] },
+  { _id: 's7', title: 'Coordinate shared notes doc for study group', quadrant: 'q3', priority: 'Low', labels: ['math240'], completed: false, assignee: 'me', comments: [], activity: [] },
   { _id: 's8', title: 'Reorganize Discord study servers', quadrant: 'q4', priority: 'Low', labels: ['ops'], completed: false, assignee: 'me', comments: [], activity: [] },
 ];
 
