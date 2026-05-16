@@ -34,11 +34,11 @@ const STRENGTH_HINTS = [
 function ForgotPasswordModal({ onClose }) {
   const { login } = useAuth();
   const navigate = useNavigate();
-  // step: 'email' | 'reset' | 'done'
   const [step, setStep] = useState('email');
   const [email, setEmail] = useState('');
-  const [token, setToken] = useState('');
+  const [resetToken, setResetToken] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [showPwd, setShowPwd] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -50,11 +50,18 @@ function ForgotPasswordModal({ onClose }) {
     setLoading(true);
     try {
       const data = await authApiExtra.forgotPassword(email);
-      // In demo mode the token is returned directly; pre-fill it
-      setToken(data.resetToken || '');
+      if (!data.resetToken) {
+        setError('No account found with that email address.');
+        return;
+      }
+      setResetToken(data.resetToken);
       setStep('reset');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Could not send reset link. Check the email address.');
+      if (!err.response) {
+        setError('Cannot reach the server. Make sure the server is running.');
+      } else {
+        setError(err.response.data?.message || 'Something went wrong.');
+      }
     } finally {
       setLoading(false);
     }
@@ -63,16 +70,18 @@ function ForgotPasswordModal({ onClose }) {
   async function handleResetPassword(e) {
     e.preventDefault();
     setError('');
-    if (pwdStrength < 4) { setError('Password does not meet requirements.'); return; }
     setLoading(true);
     try {
-      await authApiExtra.resetPassword(token, newPassword);
-      // Auto sign-in after reset
+      await authApiExtra.resetPassword(resetToken, newPassword);
       await login(email, newPassword);
       onClose();
       navigate('/board');
     } catch (err) {
-      setError(err?.response?.data?.message || 'Reset failed. The token may have expired.');
+      if (!err.response) {
+        setError('Cannot reach the server. Make sure the server is running.');
+      } else {
+        setError(err.response.data?.message || 'Reset failed. Please go back and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -91,7 +100,7 @@ function ForgotPasswordModal({ onClose }) {
         {step === 'email' && (
           <form onSubmit={handleRequestToken} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
-              Enter your registered email address. A reset code will be generated for you.
+              Enter the email address on your account and we'll generate a reset link.
             </p>
             <div className="tm-form-field">
               <label className="tm-form-label">Email address</label>
@@ -102,7 +111,7 @@ function ForgotPasswordModal({ onClose }) {
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <button type="button" className="tm-btn tm-btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>Cancel</button>
               <button type="submit" className="tm-btn tm-btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={loading}>
-                {loading ? 'Sending…' : 'Get reset code'}
+                {loading ? 'Checking…' : 'Continue'}
               </button>
             </div>
           </form>
@@ -111,38 +120,47 @@ function ForgotPasswordModal({ onClose }) {
         {step === 'reset' && (
           <form onSubmit={handleResetPassword} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p style={{ fontSize: 13, color: 'var(--ink-3)', margin: 0 }}>
-              Your reset code has been generated. Enter it below along with your new password.
+              Account found for <strong>{email}</strong>. Choose a new password.
             </p>
             <div className="tm-form-field">
-              <label className="tm-form-label">Reset code</label>
-              <input className="tm-input" value={token} onChange={(e) => setToken(e.target.value)}
-                placeholder="Paste reset code" required style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }} />
-            </div>
-            <div className="tm-form-field">
               <label className="tm-form-label">New password</label>
-              <input className="tm-input" type="password" placeholder="••••••••" value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)} required autoFocus autoComplete="new-password" />
-              {newPassword.length > 0 && (
-                <div style={{ marginTop: 6 }}>
-                  <div style={{ background: 'var(--bg-2)', borderRadius: 4, height: 4, overflow: 'hidden' }}>
-                    <div className="tm-pwd-strength-bar" style={{ width: `${(pwdStrength / 4) * 100}%`, background: STRENGTH_COLOR[pwdStrength] }} />
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
-                    <span style={{ fontSize: 11.5, color: STRENGTH_COLOR[pwdStrength], fontWeight: 600 }}>{STRENGTH_LABEL[pwdStrength]}</span>
-                    {pwdStrength < 4 && <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{STRENGTH_HINTS[pwdStrength]}</span>}
-                  </div>
+              <div style={{ position: 'relative' }}>
+                <input className="tm-input" type={showPwd ? 'text' : 'password'} placeholder="••••••••"
+                  value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+                  required autoFocus autoComplete="new-password" style={{ width: '100%', paddingRight: 40 }} />
+                <button type="button" onClick={() => setShowPwd((v) => !v)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-4)', padding: 0 }}>
+                  <Icon name="eye" size={14} />
+                </button>
+              </div>
+              <div style={{ marginTop: 6 }}>
+                <div style={{ background: 'var(--bg-2)', borderRadius: 4, height: 4, overflow: 'hidden' }}>
+                  <div className="tm-pwd-strength-bar" style={{ width: `${(pwdStrength / 4) * 100}%`, background: STRENGTH_COLOR[pwdStrength] }} />
                 </div>
-              )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 4 }}>
+                  <span style={{ fontSize: 11.5, color: STRENGTH_COLOR[pwdStrength], fontWeight: 600 }}>
+                    {newPassword.length === 0 ? 'Enter a password' : STRENGTH_LABEL[pwdStrength]}
+                  </span>
+                  {newPassword.length > 0 && pwdStrength < 4 && (
+                    <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{STRENGTH_HINTS[pwdStrength]}</span>
+                  )}
+                </div>
+              </div>
             </div>
             {error && <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>{error}</div>}
             <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
               <button type="button" className="tm-btn tm-btn-ghost" style={{ flex: 1, justifyContent: 'center' }}
-                onClick={() => { setStep('email'); setError(''); }}>Back</button>
+                onClick={() => { setStep('email'); setError(''); setNewPassword(''); }}>Back</button>
               <button type="submit" className="tm-btn tm-btn-primary" style={{ flex: 1, justifyContent: 'center' }}
                 disabled={loading || pwdStrength < 4}>
-                {loading ? 'Resetting…' : 'Reset & sign in'}
+                {loading ? 'Saving…' : 'Save & sign in'}
               </button>
             </div>
+            {pwdStrength < 4 && newPassword.length > 0 && (
+              <div style={{ fontSize: 11.5, color: 'var(--ink-4)', textAlign: 'center' }}>
+                Must have 8+ chars, uppercase, number, and special character
+              </div>
+            )}
           </form>
         )}
       </div>
