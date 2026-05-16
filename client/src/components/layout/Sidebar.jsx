@@ -5,12 +5,6 @@ import Avatar from '../ui/Avatar';
 import { useTaskContext } from '../../context/TaskContext';
 import { useAuth } from '../../context/AuthContext';
 
-const WORKSPACES = [
-  { id: 'spring',   label: "Spring '26 semester", color: 'var(--q2)' },
-  { id: 'personal', label: 'Personal',             color: 'var(--q3)' },
-  { id: 'thesis',   label: 'Senior thesis',        color: 'var(--q1)' },
-];
-
 export default function Sidebar() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
@@ -28,6 +22,7 @@ export default function Sidebar() {
     { id: '/analytics',     label: 'Analytics',     icon: 'analytics'                      },
     { id: '/team',          label: 'Team',          icon: 'users'                          },
     { id: '/notifications', label: 'Notifications', icon: 'bell',      count: overdueCount, alert: overdueCount > 0 },
+    { id: '/journal',       label: 'Journal',       icon: 'notes'                          },
   ];
 
   const bottomItems = [
@@ -62,14 +57,6 @@ export default function Sidebar() {
 
       {items.map((item) => <NavItem key={item.id} item={item} />)}
 
-      <div className="tm-side-section-label">Workspaces</div>
-      {WORKSPACES.map((w) => (
-        <a key={w.id} className="tm-nav-item" role="button" tabIndex={0}>
-          <span className="tm-tag-dot" style={{ background: w.color, width: 8, height: 8 }} />
-          <span>{w.label}</span>
-        </a>
-      ))}
-
       <div className="tm-sidebar-spacer" />
 
       {bottomItems.map((item) => <NavItem key={item.id} item={item} />)}
@@ -80,7 +67,7 @@ export default function Sidebar() {
           <span style={{ fontWeight: 600, fontSize: 13, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {user?.displayName || 'Guest'}
           </span>
-          <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{user?.isGuest ? 'Guest' : user?.plan === 'pro' ? 'Pro plan' : 'Free plan'}</span>
+          <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{user?.isGuest ? 'Guest session' : user?.email || 'TaskMatrix user'}</span>
         </div>
         {user && (
           <button className="tm-btn-icon" onClick={logout} title="Sign out" style={{ flexShrink: 0 }}>

@@ -2,37 +2,104 @@ import { useState } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Topbar from '../components/layout/Topbar';
 import Icon from '../components/ui/Icon';
-import Avatar, { PEOPLE } from '../components/ui/Avatar';
-import { useTaskContext } from '../context/TaskContext';
+import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
-const ROLES = ['Owner', 'Admin', 'Editor', 'Viewer'];
-const ROLE_MAP = { me: 'Owner', maya: 'Admin', omar: 'Editor', iris: 'Editor', leo: 'Viewer', noor: 'Viewer' };
+const ROLES = ['Admin', 'Editor', 'Viewer'];
 
-const ACTIVITY = [
-  { who: 'omar', verb: 'moved', target: '"Fix data-pipeline bug"', extra: 'Schedule → Do First', time: '12m ago' },
-  { who: 'maya', verb: 'completed', target: '"Submit problem set 6"', time: '34m ago' },
-  { who: 'iris', verb: 'commented on', target: '"Study group for Friday\'s exam"', time: '52m ago' },
-  { who: 'leo',  verb: 'accepted AI suggestion on', target: '"Print poster for symposium"', time: '1h ago' },
-];
+function useTeamMembers(userId) {
+  const key = `tm_team_${userId || 'guest'}`;
+  const [members, setMembers] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch { return []; }
+  });
+  function save(list) {
+    setMembers(list);
+    localStorage.setItem(key, JSON.stringify(list));
+  }
+  return [members, save];
+}
 
-export default function TeamPage() {
-  const { tasks } = useTaskContext();
-  const [commentInput, setCommentInput] = useState('');
-  const [comments, setComments] = useState([
-    { who: 'maya', time: '10:24am', body: 'Confirmed the bug — parser breaks on tab-separated input.' },
-    { who: 'omar', time: '11:02am', body: 'Found it. The filter was applied twice. PR up — will merge after lunch.' },
-  ]);
+function InviteModal({ onClose, onInvite }) {
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('Editor');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  function postComment() {
-    if (!commentInput.trim()) return;
-    setComments([...comments, { who: 'me', time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }), body: commentInput.trim() }]);
-    setCommentInput('');
+  async function handleInvite(e) {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const res = await api.get(`/auth/search?email=${encodeURIComponent(email)}`);
+      onInvite({ ...res.data, role, joinedAt: new Date().toISOString() });
+      onClose();
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
   }
 
-  const workload = PEOPLE.filter((p) => p.id !== 'me').map((p) => ({
-    ...p,
-    count: tasks.filter((t) => t.assignee === p.id && !t.completed).length,
-  }));
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 200 }}>
+      <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', padding: 28, width: 400, boxShadow: 'var(--shadow-3)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <h3 style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 20, letterSpacing: '-0.02em' }}>Invite team member</h3>
+          <button className="tm-btn-icon" onClick={onClose}><Icon name="x" size={14} /></button>
+        </div>
+        <p style={{ fontSize: 13, color: 'var(--ink-3)', marginBottom: 18 }}>
+          The person must have a TaskMatrix account. Enter their registered email address.
+        </p>
+        <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="tm-form-field">
+            <label className="tm-form-label">Email address</label>
+            <input className="tm-input" type="email" placeholder="teammate@example.com" value={email}
+              onChange={(e) => setEmail(e.target.value)} required autoFocus />
+          </div>
+          <div className="tm-form-field">
+            <label className="tm-form-label">Role</label>
+            <select className="tm-input" value={role} onChange={(e) => setRole(e.target.value)}>
+              {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+            </select>
+          </div>
+          {error && (
+            <div style={{ padding: '10px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 13 }}>{error}</div>
+          )}
+          <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+            <button type="button" className="tm-btn tm-btn-ghost" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>Cancel</button>
+            <button type="submit" className="tm-btn tm-btn-primary" style={{ flex: 1, justifyContent: 'center' }} disabled={loading}>
+              {loading ? 'Checking…' : 'Send invite'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function TeamPage() {
+  const { user } = useAuth();
+  const [members, saveMembers] = useTeamMembers(user?._id);
+  const [showInvite, setShowInvite] = useState(false);
+  const [editingRole, setEditingRole] = useState(null);
+
+  function handleInvite(member) {
+    if (members.find((m) => m.email === member.email)) return;
+    saveMembers([...members, member]);
+  }
+
+  function changeRole(email, role) {
+    saveMembers(members.map((m) => m.email === email ? { ...m, role } : m));
+    setEditingRole(null);
+  }
+
+  function removeMember(email) {
+    if (!confirm('Remove this member from your team?')) return;
+    saveMembers(members.filter((m) => m.email !== email));
+  }
+
+  const initials = (name) => name?.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2) || '??';
+  const hue = (email) => Math.abs([...email].reduce((a, c) => a + c.charCodeAt(0), 0)) % 360;
 
   return (
     <div className="tm-app">
@@ -41,143 +108,82 @@ export default function TeamPage() {
         <Topbar
           title="Team workspace"
           actions={
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <div style={{ display: 'flex' }}>
-                {PEOPLE.slice(0, 5).map((p) => (
-                  <div key={p.id} style={{ marginLeft: -6 }}>
-                    <Avatar person={p} size={28} />
-                  </div>
-                ))}
-              </div>
-              <button className="tm-btn tm-btn-sm"><Icon name="plus" size={13} />Invite</button>
-            </div>
+            <button className="tm-btn tm-btn-sm" onClick={() => setShowInvite(true)}>
+              <Icon name="plus" size={13} />Invite member
+            </button>
           }
         />
-
         <div className="tm-board-scroll" style={{ background: 'var(--bg-2)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '2.2fr 1fr', gap: 18 }}>
-            {/* Left — task detail + comments */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)', padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: 3, background: 'var(--q1)', flexShrink: 0 }} />
-                  <span style={{ fontSize: 11, color: 'var(--ink-3)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                    Do First · #cs410 #demo
-                  </span>
-                  <span style={{ flex: 1 }} />
-                  <span style={{ fontSize: 12, color: 'var(--q1)', fontWeight: 600 }}>Due today · 3:00pm</span>
-                </div>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontWeight: 600, fontSize: 22, letterSpacing: '-0.025em', lineHeight: 1.25 }}>
-                  Fix data-pipeline bug before Tuesday&apos;s defense demo
-                </h2>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, color: 'var(--ink-3)', fontSize: 12, flexWrap: 'wrap' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <Avatar person="omar" size={20} /> Omar · assigned
-                  </div>
-                  <span>· #cs410 #demo ·</span>
-                  <span style={{ color: 'var(--q1)', fontWeight: 600 }}>High priority</span>
-                </div>
-
-                {/* Comments */}
-                <div style={{ marginTop: 20, display: 'flex', flexDirection: 'column', gap: 14 }}>
-                  {comments.map((c, i) => {
-                    const p = PEOPLE.find((x) => x.id === c.who) || PEOPLE[0];
-                    return (
-                      <div key={i} style={{ display: 'flex', gap: 10 }}>
-                        <Avatar person={p} size={26} />
-                        <div style={{ flex: 1 }}>
-                          <div style={{ display: 'flex', gap: 6, alignItems: 'baseline' }}>
-                            <strong style={{ fontSize: 13 }}>{p.name.split(' ')[0]}</strong>
-                            <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{c.time}</span>
-                          </div>
-                          <div style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.5, marginTop: 3 }}>{c.body}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {/* Comment input */}
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 4 }}>
-                    <Avatar person="me" size={26} />
-                    <div style={{ flex: 1, border: '1px dashed var(--line-2)', borderRadius: 10, padding: '10px 12px' }}>
-                      <input
-                        style={{ border: 'none', outline: 'none', width: '100%', font: 'inherit', fontSize: 13, color: 'var(--ink)', background: 'transparent' }}
-                        placeholder="Add a comment — use @ to mention someone"
-                        value={commentInput}
-                        onChange={(e) => setCommentInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && postComment()}
-                      />
-                      {commentInput && (
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 6 }}>
-                          <button className="tm-btn tm-btn-primary tm-btn-sm" onClick={postComment}>Post</button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Activity */}
-              <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)', padding: 18 }}>
-                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Activity</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 4, marginBottom: 14 }}>Last hour</div>
-                {ACTIVITY.map((a, i) => {
-                  const p = PEOPLE.find((x) => x.id === a.who) || PEOPLE[0];
-                  return (
-                    <div key={i} style={{ display: 'flex', gap: 10, alignItems: 'center', padding: '7px 0', borderTop: i > 0 ? '1px solid var(--line)' : 'none' }}>
-                      <Avatar person={p} size={22} />
-                      <div style={{ flex: 1, fontSize: 13, color: 'var(--ink-2)' }}>
-                        <strong>{p.name.split(' ')[0]}</strong> {a.verb} <span style={{ color: 'var(--ink-3)' }}>{a.target}</span>
-                        {a.extra && <> — <span style={{ color: 'var(--ink-3)' }}>{a.extra}</span></>}
-                      </div>
-                      <div style={{ fontSize: 11, color: 'var(--ink-4)', flexShrink: 0 }}>{a.time}</div>
-                    </div>
-                  );
-                })}
-              </div>
+          <div style={{ maxWidth: 680 }}>
+            {/* Header */}
+            <div style={{ marginBottom: 24 }}>
+              <div className="tm-hero-date">Collaboration</div>
+              <h2 className="tm-hero-heading">{members.length === 0 ? 'Your team workspace' : `${members.length + 1} member${members.length > 0 ? 's' : ''}`}</h2>
+              <p style={{ color: 'var(--ink-3)', fontSize: 14, marginTop: 6 }}>
+                Invite teammates by their TaskMatrix email to collaborate on tasks.
+              </p>
             </div>
 
-            {/* Right — team + workload */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-              {/* Team members */}
-              <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)', padding: 18 }}>
-                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Team</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 4, marginBottom: 12 }}>
-                  {PEOPLE.length} members
+            {/* Owner row */}
+            <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)', overflow: 'hidden', marginBottom: 16 }}>
+              <div style={{ padding: '12px 18px', background: 'var(--bg-2)', borderBottom: '1px solid var(--line)', fontSize: 11, fontWeight: 600, color: 'var(--ink-3)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                Team members
+              </div>
+              {/* Current user as owner */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderBottom: members.length > 0 ? '1px solid var(--line)' : 'none' }}>
+                <div style={{ width: 36, height: 36, borderRadius: 10, background: `hsl(230 60% 50%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                  {initials(user?.displayName || 'Me')}
                 </div>
-                {PEOPLE.map((p, i) => (
-                  <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 0', borderTop: '1px solid var(--line)' }}>
-                    <Avatar person={p} size={28} />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 500 }}>{p.name}</div>
-                      <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{ROLE_MAP[p.id]}</div>
-                    </div>
-                    {p.id !== 'me' && (
-                      <button className="tm-btn-icon"><Icon name="dots" size={14} /></button>
-                    )}
-                  </div>
-                ))}
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13.5 }}>{user?.displayName || 'You'} <span style={{ color: 'var(--ink-4)', fontWeight: 400 }}>(you)</span></div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 2 }}>{user?.email || ''}</div>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 6, background: 'var(--ink)', color: 'var(--bg)' }}>Owner</span>
               </div>
 
-              {/* Workload */}
-              <div style={{ background: 'var(--bg)', borderRadius: 'var(--radius)', border: '1px solid var(--line)', padding: 18 }}>
-                <div style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, color: 'var(--ink-3)' }}>Workload</div>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, letterSpacing: '-0.025em', marginTop: 4, marginBottom: 12 }}>Active tasks</div>
-                {workload.map((w) => (
-                  <div key={w.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0' }}>
-                    <Avatar person={w} size={22} />
-                    <div style={{ flex: 1, fontSize: 13 }}>{w.name.split(' ')[0]}</div>
-                    <div style={{ flex: 1, height: 6, borderRadius: 3, background: 'var(--bg-2)', overflow: 'hidden', maxWidth: 90 }}>
-                      <div style={{ width: `${Math.min((w.count / 8) * 100, 100)}%`, height: '100%', background: w.count > 5 ? 'var(--q1)' : 'var(--ink)' }} />
-                    </div>
-                    <div style={{ fontSize: 12, fontFamily: 'var(--font-mono)', color: 'var(--ink-3)', width: 20, textAlign: 'right' }}>{w.count}</div>
+              {members.map((m, i) => (
+                <div key={m.email} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 18px', borderTop: '1px solid var(--line)' }}>
+                  <div style={{ width: 36, height: 36, borderRadius: 10, background: `hsl(${hue(m.email)} 55% 48%)`, color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: 13, flexShrink: 0 }}>
+                    {initials(m.displayName)}
                   </div>
-                ))}
-              </div>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13.5 }}>{m.displayName}</div>
+                    <div style={{ fontSize: 12, color: 'var(--ink-4)', marginTop: 2 }}>{m.email}</div>
+                  </div>
+                  {editingRole === m.email ? (
+                    <select className="tm-input" style={{ fontSize: 12, padding: '4px 8px' }}
+                      value={m.role} onChange={(e) => changeRole(m.email, e.target.value)} autoFocus
+                      onBlur={() => setEditingRole(null)}>
+                      {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  ) : (
+                    <button onClick={() => setEditingRole(m.email)}
+                      style={{ fontSize: 11, fontWeight: 700, padding: '3px 9px', borderRadius: 6, background: 'var(--bg-2)', color: 'var(--ink-2)', border: '1px solid var(--line-2)', cursor: 'pointer', fontFamily: 'inherit' }}>
+                      {m.role}
+                    </button>
+                  )}
+                  <button className="tm-btn-icon" title="Remove member" onClick={() => removeMember(m.email)}>
+                    <Icon name="x" size={13} />
+                  </button>
+                </div>
+              ))}
             </div>
+
+            {members.length === 0 && (
+              <div style={{ border: '2px dashed var(--line-2)', borderRadius: 'var(--radius)', padding: '40px 24px', textAlign: 'center', color: 'var(--ink-4)' }}>
+                <Icon name="users" size={32} style={{ opacity: 0.25, marginBottom: 12 }} />
+                <div style={{ fontSize: 14, fontWeight: 500, marginBottom: 6 }}>No team members yet</div>
+                <div style={{ fontSize: 13, marginBottom: 16 }}>Invite people by their TaskMatrix email address.</div>
+                <button className="tm-btn tm-btn-sm" onClick={() => setShowInvite(true)}>
+                  <Icon name="plus" size={13} />Invite first member
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {showInvite && <InviteModal onClose={() => setShowInvite(false)} onInvite={handleInvite} />}
     </div>
   );
 }

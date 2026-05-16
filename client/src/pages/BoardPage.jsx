@@ -9,14 +9,7 @@ import { useTaskContext } from '../context/TaskContext';
 
 const PRIORITIES = ['High', 'Medium', 'Low'];
 const DUE_OPTIONS = ['Today', 'This week', 'Overdue'];
-const ASSIGNEES = [
-  { id: 'me', name: 'Me' },
-  { id: 'maya', name: 'Maya' },
-  { id: 'omar', name: 'Omar' },
-  { id: 'iris', name: 'Iris' },
-  { id: 'leo', name: 'Leo' },
-  { id: 'noor', name: 'Noor' },
-];
+const ASSIGNEES = [{ id: 'me', name: 'Me (you)' }];
 
 const EMPTY_FILTERS = { priority: '', label: '', assignee: '', due: '' };
 

@@ -218,11 +218,7 @@ export default function SettingsPage() {
                       Change password
                     </button>
                   </SettingsRow>
-                  <SettingsRow label="Plan" desc="Your current subscription">
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'var(--q2-soft)', color: 'var(--q2-ink)' }}>
-                      {user?.plan === 'pro' ? 'Pro' : 'Free'}
-                    </span>
-                  </SettingsRow>
+
                 </SettingsCard>
               )}
 

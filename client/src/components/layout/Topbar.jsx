@@ -12,7 +12,6 @@ export default function Topbar({ title, actions, onSearch }) {
           onChange={(e) => onSearch?.(e.target.value)}
           aria-label="Search tasks"
         />
-        <span className="tm-kbd">⌘K</span>
       </div>
 
       <div style={{ flex: 1 }} />

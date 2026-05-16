@@ -84,12 +84,15 @@ export default function AnalyticsPage() {
   const rate      = total ? Math.round((completed / total) * 100) : 0;
   const byQ       = Object.fromEntries(QUADRANTS.map((q) => [q.id, allTasks.filter((t) => t.quadrant === q.id).length]));
 
-  // Simulated 14-day created vs completed (real data would come from timestamps)
+  // Real 14-day chart from task timestamps
   const chartData = Array.from({ length: 14 }, (_, i) => {
-    const created = Math.floor(Math.random() * 8) + 4;
-    return [created, Math.floor(created * 0.75)];
+    const day = new Date(); day.setDate(day.getDate() - (13 - i)); day.setHours(0, 0, 0, 0);
+    const nextDay = new Date(day); nextDay.setDate(nextDay.getDate() + 1);
+    const created = allTasks.filter((t) => { const c = new Date(t.createdAt); return c >= day && c < nextDay; }).length;
+    const done = allTasks.filter((t) => { if (!t.completedAt) return false; const c = new Date(t.completedAt); return c >= day && c < nextDay; }).length;
+    return [created, done];
   });
-  const chartMax = 20;
+  const chartMax = Math.max(5, ...chartData.map(([c]) => c));
 
   const tips = [];
   if (byQ['q1'] > 4) tips.push({ icon: 'clock', title: `${byQ['q1']} tasks stuck in Do First`, body: 'Consider breaking them into smaller chunks or scheduling focus blocks.' });
@@ -125,7 +128,7 @@ export default function AnalyticsPage() {
             <StatCard value={`${rate}%`} label="Completion rate" color="var(--q2)" />
             <StatCard value={completed} label="Tasks completed" color="var(--q4)" />
             <StatCard value={total - completed} label="Active tasks" />
-            <StatCard value={overdue} label="Overdue" color={overdue > 0 ? 'var(--q1)' : 'var(--ink)'} />
+            <StatCard value={overdue} label="Overdue" color={overdue > 0 ? 'var(--q1)' : 'var(--ink)'} delta={undefined} />
           </div>
 
           {/* Charts row */}

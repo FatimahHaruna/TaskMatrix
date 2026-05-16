@@ -30,6 +30,7 @@ const taskSchema = new mongoose.Schema(
     aiConfidence: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Medium' },
     aiReason: { type: String, default: '' },
     order: { type: Number, default: 0 },
+    owner: { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
     comments: [commentSchema],
     activity: [activitySchema],
   },

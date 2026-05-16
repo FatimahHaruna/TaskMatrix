@@ -195,13 +195,6 @@ export default function LoginPage() {
         </h2>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <button type="button" className="tm-btn" style={{ padding: '12px 14px', justifyContent: 'center' }}
-            onClick={() => { loginAsGuest(); navigate('/board'); }}>
-            <Icon name="google" size={18} stroke={0} />
-            Continue with Google
-          </button>
-          <div className="tm-divider-text">or with email</div>
-
           {mode === 'register' && (
             <div className="tm-form-field">
               <label className="tm-form-label">Display name</label>

@@ -10,6 +10,7 @@ import SettingsPage from './pages/SettingsPage';
 import TrashPage from './pages/TrashPage';
 import NotificationsPage from './pages/NotificationsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import JournalPage from './pages/JournalPage';
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -35,6 +36,7 @@ export default function App() {
             <Route path="/trash" element={<RequireAuth><TrashPage /></RequireAuth>} />
             <Route path="/notifications" element={<RequireAuth><NotificationsPage /></RequireAuth>} />
             <Route path="/integrations" element={<RequireAuth><IntegrationsPage /></RequireAuth>} />
+            <Route path="/journal" element={<RequireAuth><JournalPage /></RequireAuth>} />
             <Route path="*" element={<Navigate to="/login" replace />} />
           </Routes>
         </TaskProvider>
