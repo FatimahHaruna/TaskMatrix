@@ -19,9 +19,19 @@ const userSchema = new mongoose.Schema(
       suggestSubtasks: { type: Boolean, default: false },
     },
     googleId: { type: String },
+    loginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date },
+    passwordResetToken: { type: String, select: false },
+    passwordResetExpires: { type: Date, select: false },
+    plan: { type: String, enum: ['free', 'pro'], default: 'free' },
+    darkMode: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
+
+userSchema.virtual('isLocked').get(function() {
+  return !!(this.lockUntil && this.lockUntil > Date.now());
+});
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password') || !this.password) return next();

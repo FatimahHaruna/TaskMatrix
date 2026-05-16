@@ -35,6 +35,7 @@ export default function SettingsPage() {
   const [timezone, setTimezone]       = useState(user?.timezone || 'UTC');
   const [saving, setSaving]           = useState(false);
   const [saved, setSaved]             = useState(false);
+  const [darkMode, setDarkMode]       = useState(() => localStorage.getItem('tm-dark-mode') === 'true');
 
   const [aiPrefs, setAiPrefs] = useState({
     autoSuggestQuadrant:       user?.aiPrefs?.autoSuggestQuadrant       ?? true,
@@ -46,6 +47,14 @@ export default function SettingsPage() {
     inApp: user?.notificationPrefs?.inApp ?? true,
     email: user?.notificationPrefs?.email ?? false,
   });
+
+  function toggleDarkMode(v) {
+    setDarkMode(v);
+    localStorage.setItem('tm-dark-mode', v ? 'true' : 'false');
+    if (v) document.documentElement.classList.add('dark-mode');
+    else document.documentElement.classList.remove('dark-mode');
+    if (updateUser) updateUser({ darkMode: v }).catch(() => {});
+  }
 
   async function saveProfile() {
     setSaving(true);
@@ -178,8 +187,47 @@ export default function SettingsPage() {
                 </SettingsCard>
               )}
 
+              {/* APPEARANCE */}
+              {activeSection === 'Appearance' && (
+                <>
+                  <SettingsCard title="Theme">
+                    <SettingsRow label="Dark mode" desc="Switch between light and dark interface">
+                      <Toggle on={darkMode} onChange={toggleDarkMode} />
+                    </SettingsRow>
+                  </SettingsCard>
+                  <SettingsCard title="Quadrant colours">
+                    <SettingsRow label="Colour scheme" desc="Distinct colours are used by default to differentiate quadrants">
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        {['var(--q1)', 'var(--q2)', 'var(--q3)', 'var(--q4)'].map((c) => (
+                          <span key={c} style={{ width: 18, height: 18, borderRadius: 4, background: c, display: 'inline-block' }} />
+                        ))}
+                      </div>
+                    </SettingsRow>
+                  </SettingsCard>
+                </>
+              )}
+
+              {/* ACCOUNT & SECURITY */}
+              {activeSection === 'Account & security' && (
+                <SettingsCard title="Account & security">
+                  <SettingsRow label="Email address" desc="Your login email">
+                    <span style={{ fontSize: 13, color: 'var(--ink-3)' }}>{user?.email || 'alex@university.edu'}</span>
+                  </SettingsRow>
+                  <SettingsRow label="Password" desc="Change your account password">
+                    <button className="tm-btn tm-btn-sm" onClick={() => alert('Use the "Forgot password?" link on the login page to reset your password.')}>
+                      Change password
+                    </button>
+                  </SettingsRow>
+                  <SettingsRow label="Plan" desc="Your current subscription">
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '3px 8px', borderRadius: 6, background: 'var(--q2-soft)', color: 'var(--q2-ink)' }}>
+                      {user?.plan === 'pro' ? 'Pro' : 'Free'}
+                    </span>
+                  </SettingsRow>
+                </SettingsCard>
+              )}
+
               {/* DEFAULT PLACEHOLDER */}
-              {!['Profile', 'AI suggestions', 'Notifications', 'Danger zone'].includes(activeSection) && (
+              {!['Profile', 'AI suggestions', 'Notifications', 'Danger zone', 'Appearance', 'Account & security'].includes(activeSection) && (
                 <SettingsCard>
                   <div style={{ color: 'var(--ink-4)', fontSize: 14, padding: '20px 0', textAlign: 'center' }}>
                     <Icon name="cog" size={32} style={{ opacity: 0.2, marginBottom: 12 }} />

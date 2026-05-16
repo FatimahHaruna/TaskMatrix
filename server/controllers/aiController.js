@@ -8,6 +8,24 @@ const ELIMINATE_KW = ['optional','maybe','someday','eventually','low priority','
 
 const Q_LABELS = { q1: 'Do First', q2: 'Schedule', q3: 'Delegate', q4: 'Eliminate' };
 
+// ─── In-memory cache (FR-424) ─────────────────────────────
+const aiCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+function getCached(key) {
+  const entry = aiCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > CACHE_TTL) { aiCache.delete(key); return null; }
+  return entry.data;
+}
+function setCache(key, data) {
+  if (aiCache.size > 500) aiCache.clear(); // prevent memory leak
+  aiCache.set(key, { data, ts: Date.now() });
+}
+function makeCacheKey(title, notes) {
+  return `${(title || '').toLowerCase().trim()}|||${(notes || '').toLowerCase().trim()}`;
+}
+
 function detectQuadrant(title, notes = '') {
   const text = `${title} ${notes}`.toLowerCase();
   const isUrgent = URGENCY_KW.some((k) => text.includes(k));
@@ -26,7 +44,7 @@ function detectQuadrant(title, notes = '') {
 function suggestTitleImprovement(title) {
   const t = title.trim();
   const suggestions = [];
-  if (t.length < 15) suggestions.push(`Be more specific: "${t} — add context about why this matters or when it is due."`);
+  if (t.length < 15) suggestions.push(`Be more specific: add context about why this matters or when it is due.`);
   if (!t.match(/\b(by|before|until|on|today|tomorrow|this week|monday|tuesday|wednesday|thursday|friday)\b/i)) suggestions.push('Add a time reference (e.g. "by Friday" or "before class").');
   if (t.split(' ').length > 15) suggestions.push('Consider splitting into two tasks — this title is quite long.');
   return suggestions.slice(0, 2);
@@ -53,10 +71,17 @@ const suggest = async (req, res) => {
   try {
     const { title, notes } = req.body;
     if (!title) return res.status(400).json({ message: 'title is required' });
+
+    const cacheKey = makeCacheKey(title, notes);
+    const cached = getCached(cacheKey + '|suggest');
+    if (cached) return res.json({ ...cached, cached: true });
+
     await new Promise((r) => setTimeout(r, 350));
     const { quadrant, confidence, reason } = detectQuadrant(title, notes);
     const titleHints = suggestTitleImprovement(title);
-    res.json({ quadrant, quadrantLabel: Q_LABELS[quadrant], confidence, reason, titleHints });
+    const result = { quadrant, quadrantLabel: Q_LABELS[quadrant], confidence, reason, titleHints };
+    setCache(cacheKey + '|suggest', result);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -66,11 +91,41 @@ const subtasks = async (req, res) => {
   try {
     const { title, notes } = req.body;
     if (!title) return res.status(400).json({ message: 'title is required' });
+
+    const cacheKey = makeCacheKey(title, notes);
+    const cached = getCached(cacheKey + '|subtasks');
+    if (cached) return res.json({ ...cached, cached: true });
+
     await new Promise((r) => setTimeout(r, 300));
-    res.json({ subtasks: suggestSubtasks(title, notes) });
+    const result = { subtasks: suggestSubtasks(title, notes) };
+    setCache(cacheKey + '|subtasks', result);
+    res.json(result);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
 
-module.exports = { suggest, subtasks };
+// FR-413: Flag misclassified tasks
+const misclassify = async (req, res) => {
+  try {
+    const { title, notes, currentQuadrant } = req.body;
+    if (!title || !currentQuadrant) return res.status(400).json({ message: 'title and currentQuadrant required' });
+
+    const suggested = detectQuadrant(title, notes);
+    const isMisclassified = suggested.quadrant !== currentQuadrant;
+
+    res.json({
+      isMisclassified,
+      currentQuadrant,
+      currentLabel: Q_LABELS[currentQuadrant],
+      suggestedQuadrant: suggested.quadrant,
+      suggestedLabel: Q_LABELS[suggested.quadrant],
+      confidence: suggested.confidence,
+      reason: isMisclassified ? suggested.reason : 'Task appears correctly classified.',
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+module.exports = { suggest, subtasks, misclassify };

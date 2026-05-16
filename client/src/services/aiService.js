@@ -16,3 +16,11 @@ export async function suggestSubtasks(title, notes = '') {
     return [];
   }
 }
+
+export async function checkMisclassification(title, notes, currentQuadrant) {
+  try {
+    return await aiApi.misclassify(title, notes, currentQuadrant);
+  } catch {
+    return null;
+  }
+}

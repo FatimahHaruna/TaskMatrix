@@ -3,7 +3,7 @@ import Icon from '../ui/Icon';
 import Avatar, { PEOPLE, personById } from '../ui/Avatar';
 import { QUADRANTS } from '../board/Quadrant';
 import { useTaskContext } from '../../context/TaskContext';
-import { suggestQuadrant, suggestSubtasks } from '../../services/aiService';
+import { suggestQuadrant, suggestSubtasks, checkMisclassification } from '../../services/aiService';
 
 const PRIORITIES = ['High', 'Medium', 'Low'];
 const Q_COLORS = {
@@ -37,12 +37,21 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
   const [subtaskList, setSubtaskList]   = useState([]);
   const [subtasksLoading, setSubtasksLoading] = useState(false);
   const [titleHints, setTitleHints] = useState([]);
+  const [misclassifyWarning, setMisclassifyWarning] = useState(null);
   const [saving, setSaving]     = useState(false);
 
   const titleRef = useRef();
   const debounceRef = useRef();
 
   useEffect(() => { titleRef.current?.focus(); }, []);
+
+  // FR-413: Check for misclassified tasks when opening an existing task
+  useEffect(() => {
+    if (!isEditing || !task?.title || !task?.quadrant) return;
+    checkMisclassification(task.title, task.notes, task.quadrant).then((result) => {
+      if (result?.isMisclassified) setMisclassifyWarning(result);
+    });
+  }, [isEditing, task]);
 
   useEffect(() => {
     if (isEditing || title.trim().length < 10) return;
@@ -138,6 +147,24 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
               {titleHints.length > 0 && (
                 <div style={{ margin: '0 14px 8px', padding: '10px 12px', background: 'var(--bg-2)', borderRadius: 10, fontSize: 12.5, color: 'var(--ink-3)' }}>
                   <strong style={{ color: 'var(--ink-2)' }}>💡 Title hint: </strong>{titleHints[0]}
+                </div>
+              )}
+
+              {/* FR-413: Misclassification warning */}
+              {isEditing && misclassifyWarning && (
+                <div style={{ margin: '0 14px 8px', padding: '12px 14px', background: 'var(--q3-soft)', borderRadius: 10, fontSize: 12.5, color: 'var(--q3-ink)', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                  <Icon name="sparkles" size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <div style={{ flex: 1 }}>
+                    <strong>AI notice:</strong> This task may belong in <strong>{misclassifyWarning.suggestedLabel}</strong> instead of <strong>{misclassifyWarning.currentLabel}</strong>.
+                    <div style={{ fontSize: 12, marginTop: 3, opacity: 0.85 }}>{misclassifyWarning.reason}</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                    <button className="tm-btn tm-btn-sm" style={{ fontSize: 11 }}
+                      onClick={() => { setQuadrant(misclassifyWarning.suggestedQuadrant); setMisclassifyWarning(null); }}>
+                      Move
+                    </button>
+                    <button className="tm-btn-icon" onClick={() => setMisclassifyWarning(null)}><Icon name="x" size={11} /></button>
+                  </div>
                 </div>
               )}
 

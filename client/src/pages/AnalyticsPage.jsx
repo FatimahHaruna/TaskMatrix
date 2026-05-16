@@ -103,9 +103,12 @@ export default function AnalyticsPage() {
         <Topbar
           title="Analytics"
           actions={
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8 }} className="no-print">
               <button className="tm-btn tm-btn-sm" onClick={() => exportCSV(allTasks)}>
                 <Icon name="download" size={13} />Export CSV
+              </button>
+              <button className="tm-btn tm-btn-sm" onClick={() => window.print()}>
+                <Icon name="download" size={13} />Export PDF
               </button>
             </div>
           }

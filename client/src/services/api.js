@@ -29,8 +29,14 @@ export const taskApi = {
 };
 
 export const aiApi = {
-  suggest:  (title, notes) => api.post('/ai/suggest', { title, notes }).then((r) => r.data),
-  subtasks: (title, notes) => api.post('/ai/subtasks', { title, notes }).then((r) => r.data),
+  suggest:      (title, notes) => api.post('/ai/suggest', { title, notes }).then((r) => r.data),
+  subtasks:     (title, notes) => api.post('/ai/subtasks', { title, notes }).then((r) => r.data),
+  misclassify:  (title, notes, currentQuadrant) => api.post('/ai/misclassify', { title, notes, currentQuadrant }).then((r) => r.data),
+};
+
+export const authApiExtra = {
+  forgotPassword: (email)           => api.post('/auth/forgot-password', { email }).then((r) => r.data),
+  resetPassword:  (token, password) => api.post('/auth/reset-password', { token, password }).then((r) => r.data),
 };
 
 export default api;
