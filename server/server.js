@@ -23,11 +23,17 @@ app.use(cors({
 
 app.use(express.json());
 
-// Health check — must respond before DB connects so Render marks service healthy
-app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
+let dbReady = false;
 
-// Root route — friendly message instead of Express "Cannot GET /"
-app.get('/', (req, res) => res.json({ name: 'TaskMatrix API', status: 'running', health: '/api/health' }));
+// Health check — always responds so Render never marks the service as crashed
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', db: dbReady ? 'connected' : 'connecting' });
+});
+
+// Root route — friendly info page
+app.get('/', (req, res) => {
+  res.json({ name: 'TaskMatrix API', status: 'running', db: dbReady ? 'connected' : 'connecting', health: '/api/health' });
+});
 
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
@@ -38,9 +44,10 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Connect to DB after server is listening
-connectDB().catch((err) => {
-  console.error('MongoDB connection failed:', err.message);
-  console.error('Set MONGO_URI to a MongoDB Atlas connection string in Render environment variables.');
-  process.exit(1);
-});
+// Connect to DB — server stays alive even if this fails
+connectDB()
+  .then(() => { dbReady = true; })
+  .catch((err) => {
+    console.error('MongoDB connection failed:', err.message);
+    console.error('Add MONGO_URI to Render environment variables (use MongoDB Atlas).');
+  });
