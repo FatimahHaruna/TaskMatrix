@@ -1,11 +1,18 @@
 const Task = require('../models/Task');
 
+function isDbError(err) {
+  const m = err.message || '';
+  return m.includes('buffering timed out') || m.includes('ECONNREFUSED') ||
+    m.includes('MongoNetworkError') || m.includes('MongoServerSelectionError');
+}
+
 const getTasks = async (req, res) => {
   try {
     const tasks = await Task.find({ owner: req.user._id, deleted: { $ne: true } }).sort({ quadrant: 1, order: 1, createdAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -14,7 +21,8 @@ const getTrash = async (req, res) => {
     const tasks = await Task.find({ owner: req.user._id, deleted: true }).sort({ deletedAt: -1 });
     res.json(tasks);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -27,7 +35,8 @@ const createTask = async (req, res) => {
     });
     res.status(201).json(task);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 400;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -48,7 +57,8 @@ const updateTask = async (req, res) => {
     );
     res.json(task);
   } catch (err) {
-    res.status(400).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 400;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -62,7 +72,8 @@ const softDeleteTask = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json({ message: 'Task moved to trash', task });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -76,7 +87,8 @@ const restoreTask = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json(task);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -86,7 +98,8 @@ const permanentDelete = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json({ message: 'Task permanently deleted' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -100,7 +113,8 @@ const toggleComplete = async (req, res) => {
     await task.save();
     res.json(task);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -116,7 +130,8 @@ const addComment = async (req, res) => {
     if (!task) return res.status(404).json({ message: 'Task not found' });
     res.json(task);
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 
@@ -130,7 +145,8 @@ const reorderTasks = async (req, res) => {
     );
     res.json({ message: 'Reordered' });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    const status = isDbError(err) ? 503 : 500;
+    res.status(status).json({ message: isDbError(err) ? 'Cannot reach the database. Make sure MongoDB is running.' : err.message });
   }
 };
 

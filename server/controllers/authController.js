@@ -5,6 +5,15 @@ const User = require('../models/User');
 const SECRET = process.env.JWT_SECRET || 'tm_dev_secret';
 const signToken = (id) => jwt.sign({ id }, SECRET, { expiresIn: '30d' });
 
+function isDbError(err) {
+  const m = err.message || '';
+  return m.includes('buffering timed out') || m.includes('ECONNREFUSED') ||
+    m.includes('MongoNetworkError') || m.includes('MongoServerSelectionError');
+}
+function dbErrorResponse(res) {
+  return res.status(503).json({ message: 'Cannot reach the database. Make sure MongoDB is running.' });
+}
+
 // Password strength: 8+ chars, uppercase, number, special char
 function validatePassword(password) {
   if (!password || password.length < 8) return 'Password must be at least 8 characters.';
@@ -32,6 +41,7 @@ const register = async (req, res) => {
       user: { _id: user._id, displayName: user.displayName, email: user.email, avatarInitials: user.avatarInitials, timezone: user.timezone, role: user.role, plan: user.plan, notificationPrefs: user.notificationPrefs, aiPrefs: user.aiPrefs }
     });
   } catch (err) {
+    if (isDbError(err)) return dbErrorResponse(res);
     res.status(400).json({ message: err.message });
   }
 };
@@ -71,6 +81,7 @@ const login = async (req, res) => {
       user: { _id: user._id, displayName: user.displayName, email: user.email, avatarInitials: user.avatarInitials, timezone: user.timezone, role: user.role, plan: user.plan, notificationPrefs: user.notificationPrefs, aiPrefs: user.aiPrefs }
     });
   } catch (err) {
+    if (isDbError(err)) return dbErrorResponse(res);
     res.status(500).json({ message: err.message });
   }
 };

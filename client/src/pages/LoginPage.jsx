@@ -209,7 +209,11 @@ export default function LoginPage() {
         navigate('/welcome');
       }
     } catch (err) {
-      setError(err?.response?.data?.message || 'Something went wrong. Check your credentials.');
+      if (!err.response) {
+        setError('Cannot reach the server. Make sure the server is running on port 5000.');
+      } else {
+        setError(err.response.data?.message || 'Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
