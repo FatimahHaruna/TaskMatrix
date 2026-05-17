@@ -1,18 +1,15 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
-  try {
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 10000,
-    });
-    console.log(`MongoDB connected: ${conn.connection.host}`);
-  } catch (err) {
-    console.error('MongoDB connection failed:', err.message);
-    console.error('Make sure MongoDB is running: mongod --dbpath /data/db');
-    console.error('Or update MONGO_URI in server/.env to point to MongoDB Atlas.');
-    process.exit(1);
+  const uri = process.env.MONGO_URI;
+  if (!uri) {
+    throw new Error('MONGO_URI is not set. Add it to server/.env or Render environment variables.');
   }
+  const conn = await mongoose.connect(uri, {
+    serverSelectionTimeoutMS: 10000,
+    socketTimeoutMS: 30000,
+  });
+  console.log(`MongoDB connected: ${conn.connection.host}`);
 };
 
 module.exports = connectDB;
