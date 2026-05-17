@@ -26,6 +26,9 @@ app.use(express.json());
 // Health check — must respond before DB connects so Render marks service healthy
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+// Root route — friendly message instead of Express "Cannot GET /"
+app.get('/', (req, res) => res.json({ name: 'TaskMatrix API', status: 'running', health: '/api/health' }));
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/ai', require('./routes/ai'));
