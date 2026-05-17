@@ -43,6 +43,7 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
   const [titleHints, setTitleHints] = useState([]);
   const [misclassifyWarning, setMisclassifyWarning] = useState(null);
   const [saving, setSaving]     = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   const titleRef = useRef();
   const debounceRef = useRef();
@@ -94,10 +95,13 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
     e?.preventDefault();
     if (!title.trim()) return;
     setSaving(true);
+    setSaveError('');
     try {
       const data = { title: title.trim(), notes, quadrant, priority, labels, dueDate: dueDate || null, dueTime, assignee };
       isEditing ? await updateTask(task._id, data) : await createTask(data);
       onClose();
+    } catch (err) {
+      setSaveError(err?.response?.data?.message || 'Failed to save. Check your connection and try again.');
     } finally { setSaving(false); }
   }
 
@@ -174,7 +178,7 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
               )}
 
               {/* AI suggestion */}
-              {(aiLoading || aiSuggestion) && (
+              {(aiLoading || (aiSuggestion && aiSuggestion.quadrant)) && (
                 <div className="tm-ai-suggest">
                   <div className="tm-ai-icon"><Icon name="sparkles" size={15} /></div>
                   <div style={{ minWidth: 0 }}>
@@ -186,12 +190,14 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                           <strong style={{ fontSize: 13.5 }}>AI suggests:</strong>
                           <span className="tm-ai-quadrant-badge" style={{ background: QUADRANTS.find((q2) => q2.id === aiSuggestion.quadrant)?.color }}>
                             <span className="tm-tag-dot" style={{ background: 'white' }} />
-                            {aiSuggestion.quadrantLabel}
+                            {aiSuggestion.quadrantLabel || aiSuggestion.quadrant}
                           </span>
+                          {aiSuggestion.confidence && (
                           <span className="tm-ai-confidence">
                             <span className="tm-tag-dot" style={{ background: CONF_COLORS[aiSuggestion.confidence] }} />
                             {aiSuggestion.confidence} confidence
                           </span>
+                          )}
                         </div>
                         <p className="tm-ai-reason">{aiSuggestion.reason}</p>
                         <div className="tm-ai-actions">
@@ -314,7 +320,9 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
                     <div style={{ flex: 1 }}>
                       <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
                         <strong style={{ fontSize: 13 }}>{commentName}</strong>
-                        <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{new Date(c.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                        {c.createdAt && !isNaN(new Date(c.createdAt)) && (
+                          <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>{new Date(c.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                        )}
                       </div>
                       <div style={{ fontSize: 13.5, color: 'var(--ink-2)', lineHeight: 1.5, marginTop: 3 }}>{c.body}</div>
                     </div>
@@ -373,15 +381,22 @@ export default function TaskModal({ task, defaultQuadrant, onClose }) {
 
         {/* Footer */}
         {tab === 'details' && (
-          <div className="tm-modal-footer">
-            <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
-              <span className="tm-kbd">⌘</span> <span className="tm-kbd">↵</span> to save
-            </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button type="button" className="tm-btn tm-btn-sm" onClick={onClose}>Cancel</button>
-              <button type="submit" className="tm-btn tm-btn-primary tm-btn-sm" disabled={!title.trim() || saving}>
-                {saving ? 'Saving…' : isEditing ? 'Save changes' : `Add to ${selectedQ?.label}`}
-              </button>
+          <div className="tm-modal-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 8 }}>
+            {saveError && (
+              <div style={{ padding: '8px 12px', background: 'var(--q1-soft)', color: 'var(--q1-ink)', borderRadius: 8, fontSize: 12.5 }}>
+                {saveError}
+              </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>
+                <span className="tm-kbd">⌘</span> <span className="tm-kbd">↵</span> to save
+              </div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button type="button" className="tm-btn tm-btn-sm" onClick={onClose}>Cancel</button>
+                <button type="submit" className="tm-btn tm-btn-primary tm-btn-sm" disabled={!title.trim() || saving}>
+                  {saving ? 'Saving…' : isEditing ? 'Save changes' : `Add to ${selectedQ?.label}`}
+                </button>
+              </div>
             </div>
           </div>
         )}

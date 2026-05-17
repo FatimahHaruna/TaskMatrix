@@ -130,7 +130,7 @@ function ForgotPasswordModal({ onClose }) {
                   required autoFocus autoComplete="new-password" style={{ width: '100%', paddingRight: 40 }} />
                 <button type="button" onClick={() => setShowPwd((v) => !v)}
                   style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-4)', padding: 0 }}>
-                  <Icon name="eye" size={14} />
+                  <Icon name={showPwd ? 'eyeOff' : 'eye'} size={14} />
                 </button>
               </div>
               <div style={{ marginTop: 6 }}>
@@ -291,7 +291,7 @@ export default function LoginPage() {
                 style={{ width: '100%', paddingRight: 40 }} />
               <button type="button" onClick={() => setShowPassword((v) => !v)}
                 style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--ink-4)', padding: 0 }}>
-                <Icon name={showPassword ? 'eye' : 'eye'} size={14} />
+                <Icon name={showPassword ? 'eyeOff' : 'eye'} size={14} />
               </button>
             </div>
             {mode === 'register' && password.length > 0 && (

@@ -10,7 +10,6 @@ function applyFiltersAndSearch(tasks, searchQuery, filters) {
     result = result.filter((t) =>
       t.title.toLowerCase().includes(q) ||
       (t.notes || '').toLowerCase().includes(q) ||
-      (t.description || '').toLowerCase().includes(q) ||
       t.labels?.some((l) => l.toLowerCase().includes(q))
     );
   }

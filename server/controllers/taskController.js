@@ -33,18 +33,17 @@ const createTask = async (req, res) => {
 
 const updateTask = async (req, res) => {
   try {
+    const Q_LABELS = { q1: 'Do First', q2: 'Schedule', q3: 'Delegate', q4: 'Eliminate' };
     const existing = await Task.findOne({ _id: req.params.id, owner: req.user._id });
     if (!existing) return res.status(404).json({ message: 'Task not found' });
 
-    const activityEntry = { user: req.user.displayName, action: 'updated', detail: 'Task updated' };
-    if (req.body.quadrant && req.body.quadrant !== existing.quadrant) {
-      const labels = { q1: 'Do First', q2: 'Schedule', q3: 'Delegate', q4: 'Eliminate' };
-      activityEntry.detail = `Moved from ${labels[existing.quadrant]} to ${labels[req.body.quadrant]}`;
-    }
+    const detail = req.body.quadrant && req.body.quadrant !== existing.quadrant
+      ? `Moved from ${Q_LABELS[existing.quadrant]} to ${Q_LABELS[req.body.quadrant]}`
+      : 'Task updated';
 
-    const task = await Task.findOneAndUpdate(
-      { _id: req.params.id, owner: req.user._id },
-      { ...req.body, $push: { activity: activityEntry } },
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { ...req.body, $push: { activity: { user: req.user.displayName, action: 'updated', detail } } },
       { new: true, runValidators: true }
     );
     res.json(task);
